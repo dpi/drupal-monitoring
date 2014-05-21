@@ -13,6 +13,8 @@ test_dependencies[] = search_api_db
 test_dependencies[] = simplenews (1.x)
 test_dependencies[] = elysia_cron
 test_dependencies[] = services
+test_dependencies[] = rest_server
+test_dependencies[] = libraries (2.x)
 test_dependencies[] = commerce_order
 
 simplytest_dependencies[] = monitoring_demo
