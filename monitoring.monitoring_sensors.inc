@@ -379,8 +379,6 @@ function monitoring_past_db_monitoring_sensor_info() {
         'table' => 'past_event',
         'conditions' => array(
           array('field' => 'severity', 'value' => $severity),
-          // This is to exclude monitoring records.
-          array('field' => 'type', 'value' => 'monitoring', 'operator' => '!='),
         ),
         'time_interval_field' => 'timestamp',
         'time_interval_value' => 24 * 60 * 60,
