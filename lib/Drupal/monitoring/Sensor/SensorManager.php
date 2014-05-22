@@ -96,9 +96,6 @@ class SensorManager {
       $info_by_categories[$sensor_info->getCategory()][$sensor_name] = $sensor_info;
     }
 
-    // Sort the categories by their name.
-    ksort($info_by_categories);
-
     return $info_by_categories;
   }
 
@@ -164,6 +161,31 @@ class SensorManager {
       $available_sensors[$sensor_name]['name'] = $sensor_name;
       variable_set('monitoring_available_sensors', $available_sensors);
     }
+  }
+
+  /**
+   * Callback for uasort() to order sensors by category and label.
+   *
+   * @param \Drupal\monitoring\Sensor\SensorInfo $a
+   *   1st Object to compare with.
+   *
+   * @param \Drupal\monitoring\Sensor\SensorInfo $b
+   *   2nd Object to compare with.
+   *
+   * @return int
+   *   Sort order of the passed in SensorInfo objects.
+   */
+  public static function orderSensorInfo(SensorInfo $a, SensorInfo $b) {
+    // Checks whether both labels and categories are equal.
+    if ($a->getLabel() == $b->getLabel() && $a->getCategory() == $b->getCategory()) {
+      return 0;
+    }
+    // If the categories are not equal, their order is determined.
+    elseif ($a->getCategory() != $b->getCategory()) {
+      return ($a->getCategory() < $b->getCategory()) ? -1 : 1;
+    }
+    // In the end, the label's order is determined.
+    return ($a->getLabel() < $b->getLabel()) ? -1 : 1;
   }
 
   /**
@@ -239,8 +261,8 @@ class SensorManager {
       $info[$sensor_name] = new SensorInfo($sensor_name, $sensor_info);
     }
 
-    // Sort the sensors by their name.
-    ksort($info);
+    // Sort the sensors by category and label.
+    uasort($info, "\Drupal\monitoring\Sensor\SensorManager::orderSensorInfo");
 
     return $info;
   }
