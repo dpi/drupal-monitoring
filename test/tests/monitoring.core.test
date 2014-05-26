@@ -261,6 +261,14 @@ class MonitoringCoreTest extends MonitoringTestBase {
 
     $result = $this->runSensor('node_new_all');
     $this->assertEqual($result->getValue(), 3);
+
+    variable_set('theme_default', 'bartik');
+    $result = $this->runSensor('core_theme_default');
+    $this->assertTrue($result->isOk());
+
+    variable_set('theme_default', 'garland');
+    $result = $this->runSensor('core_theme_default');
+    $this->assertTrue($result->isCritical());
   }
 
   /**

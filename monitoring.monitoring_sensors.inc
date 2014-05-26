@@ -437,6 +437,7 @@ function monitoring_system_monitoring_sensor_info() {
     'sensor_class' => 'Drupal\monitoring\Sensor\Sensors\SensorVariable',
     'numeric' => FALSE,
     'settings' => array(
+      'enabled' => FALSE,
       'variable_name' => 'theme_default',
       'variable_value' => 'bartik',
       'variable_default_value' => 'bartik',
