@@ -236,10 +236,16 @@ function monitoring_dblog_monitoring_sensor_info() {
       $critical_threshold = 5;
       $warning_threshold = 1;
     }
-    else {
+    elseif (!in_array($level, array(WATCHDOG_NOTICE, WATCHDOG_INFO))) {
       $caching_time = 900;
       $critical_threshold = 50;
       $warning_threshold = 20;
+    }
+    // Disable notice and info levels by default.
+    else {
+      $caching_time = 900;
+      $critical_threshold = NULL;
+      $warning_threshold = NULL;
     }
 
     $info['dblog_event_severity_' . $severities[$level]] = array(
