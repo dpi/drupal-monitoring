@@ -41,7 +41,7 @@ function monitoring_demo_page() {
       '#title' => t('Sensor example: "Enabled modules"'),
       '#description' => t('Monitors which modules are supposed to be enabled. In case there is a needed module disabled or excess module enabled you will be noticed.') .
           theme('item_list', array('items' => array(
-        t('<a href="@url">Configure</a> the module by submitting the default settings.', array('@url' => url('admin/config/system/monitoring/sensors/enabled_modules'))),
+        t('<a href="@url">Configure</a> the module by submitting the default settings.', array('@url' => url('admin/config/system/monitoring/sensors/monitoring_enabled_modules'))),
         t('<a href="@url">Disable</a> Dashboard module and enable Book module.', array('@url' => url('admin/modules'))),
         t('Visit the <a href="@url">sensors overview page</a> to see the reported issue.', array('@url' => url('admin/reports/monitoring'))),
       ))),
