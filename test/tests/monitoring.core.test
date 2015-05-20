@@ -206,15 +206,16 @@ class MonitoringCoreTest extends MonitoringTestBase {
     // Enable the sensor and set cmd to output something
     monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
       'enabled' => TRUE,
-      'cmd' => 'echo "dummy output\nanother dummy output"',
+      'cmd' => 'printf "A addedfile.txt\nM sites/all/modules/monitoring/test/tests/monitoring.core.test\nD deleted file.txt"',
     ));
     $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
     $this->assertTrue($result->isCritical());
     // The verbose output should contain the cmd output.
-    $this->assertTrue(strpos($result->getVerboseOutput(), 'dummy output') !== FALSE);
-    // Two lines of cmd output.
-    $this->assertEqual($result->getValue(), 2);
-
+    $this->assertTrue(strpos($result->getVerboseOutput(), "A addedfile.txt\nM sites/all/modules/monitoring/test/tests/monitoring.core.test\nD deleted file.txt") !== FALSE);
+    // Three lines of cmd output.
+    $this->assertEqual($result->getValue(), 3);
+    // Check if the sensor message has the expected value.
+    $this->assertEqual($result->getMessage(), 'Value 3, expected 0, Files in unexpected state: A addedfile.txt, M …modules/monitoring/test/tests/monitoring.core.test');
     // Now echo empty string
     monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
       'enabled' => TRUE,
