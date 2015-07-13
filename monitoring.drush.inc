@@ -368,12 +368,12 @@ function monitoring_drush_disable($sensor_name) {
   $sensor_manager = monitoring_sensor_manager();
   try {
     $sensor_info = $sensor_manager->getSensorInfoByName($sensor_name);
-    if (!$sensor_info->isEnabled()) {
-      $sensor_manager->enableSensor($sensor_name);
+    if ($sensor_info->isEnabled()) {
+      $sensor_manager->disableSensor($sensor_name);
       drush_log(dt('The sensor @name was disabled.', array('@name' => $sensor_info->getLabel())), 'ok');
     }
     else {
-      drush_log(dt('The sensor @name is currently disabled.', array('@name' => $sensor_info->getLabel())), 'warning');
+      drush_log(dt('The sensor @name is already disabled.', array('@name' => $sensor_info->getLabel())), 'warning');
     }
   }
   catch (NonExistingSensorException $e) {
@@ -391,11 +391,24 @@ function monitoring_drush_purge_settings($sensor_name = NULL) {
   if (empty($sensor_name)) {
     if (drush_confirm(dt('Do you want to purge all sensor settings?'))) {
       $query = db_query('DELETE FROM {variable} WHERE name LIKE :name', array(':name' => 'monitoring_%'));
-      drush_print(dt('Affected rows: @rows', array('@rows' => $query->rowCount())));
+      drush_print(dt('Purged settings of @count sensors.', array('@count' => $query->rowCount())));
     }
     return;
   }
 
-  $query = db_query('DELETE FROM {variable} WHERE name = :name', array(':name' => monitoring_sensor_settings_key($sensor_name)));
-  drush_print(dt('Affected rows: @rows', array('@rows' => $query->rowCount())));
+  $sensor_manager = monitoring_sensor_manager();
+  try {
+    // Check if the given sensor exists.
+    $sensor_manager->getSensorInfoByName($sensor_name);
+    $query = db_query('DELETE FROM {variable} WHERE name = :name', array(':name' => monitoring_sensor_settings_key($sensor_name)));
+    if ($query->rowCount()) {
+      drush_print(dt('Purged settings of @sensor_name.', array('@sensor_name' => $sensor_name)));
+    }
+    else {
+      drush_print(dt('No settings to purge.'));
+    }
+  }
+  catch (NonExistingSensorException $e) {
+    drush_set_error('MONITORING_SENSOR_INVALID_NAME', dt('Sensor "@name" does not exist.', array('@name' => $sensor_name)));
+  }
 }
