@@ -358,22 +358,18 @@ class MonitoringCoreTest extends MonitoringTestBase {
    */
   function testSensorDisappearedSensors() {
 
-    // Enable the comment module and the comment_new sensor.
+    // Enable the comment module.
     module_enable(array('comment'));
-    $this->sensorManager->enableSensor('comment_new');
 
     // Run the disappeared sensor - it should not report any problems.
     $result = $this->runSensor('monitoring_disappeared_sensors');
     $this->assertTrue($result->isOk());
 
     $log = $this->loadWatchdog();
-    $this->assertEqual(count($log), 2, 'There should be two log entries: comment_new sensor added, all sensors enabled by default added.');
-    $this->assertEqual(format_string($log[0]->message, unserialize($log[0]->variables)),
-      format_string('@count new sensor/s added: @names', array('@count' => 1, '@names' => 'comment_new')));
+    $this->assertEqual(count($log), 1, 'There should be one log entry: all sensors enabled by default added.');
 
     $sensor_info = monitoring_sensor_manager()->getSensorInfo();
-    unset($sensor_info['comment_new']);
-    $this->assertEqual(format_string($log[1]->message, unserialize($log[1]->variables)),
+    $this->assertEqual(format_string($log[0]->message, unserialize($log[0]->variables)),
       format_string('@count new sensor/s added: @names', array(
         '@count' => count($sensor_info),
         '@names' => implode(', ', array_keys($sensor_info))
@@ -389,7 +385,7 @@ class MonitoringCoreTest extends MonitoringTestBase {
     $this->assertEqual($result->getMessage(), 'Missing sensor comment_new');
 
     // There should be no new logs.
-    $this->assertEqual(count($this->loadWatchdog()), 2);
+    $this->assertEqual(count($this->loadWatchdog()), 1);
 
     // Enable the comment module to test the correct procedure of removing
     // sensors.
@@ -398,7 +394,7 @@ class MonitoringCoreTest extends MonitoringTestBase {
     // Now we should be back to normal.
     $result = $this->runSensor('monitoring_disappeared_sensors');
     $this->assertTrue($result->isOk());
-    $this->assertEqual(count($this->loadWatchdog()), 2);
+    $this->assertEqual(count($this->loadWatchdog()), 1);
 
     // Do the correct procedure to remove a sensor - first disable the sensor
     // and then disable the comment module.
@@ -410,8 +406,8 @@ class MonitoringCoreTest extends MonitoringTestBase {
     $this->assertTrue($result->isOk());
 
     $log = $this->loadWatchdog();
-    $this->assertEqual(count($log), 3, 'Removal of comment_new sensor should be logged.');
-    $this->assertEqual(format_string($log[2]->message, unserialize($log[2]->variables)),
+    $this->assertEqual(count($log), 2, 'Removal of comment_new sensor should be logged.');
+    $this->assertEqual(format_string($log[1]->message, unserialize($log[1]->variables)),
     format_string('@count new sensor/s removed: @names', array('@count' => 1, '@names' => 'comment_new')));
 
     // === Test the UI === //

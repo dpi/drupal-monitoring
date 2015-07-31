@@ -118,7 +118,12 @@ function monitoring_comment_monitoring_sensor_info() {
     'value_label' => 'Comments',
     'settings' => array(
       'category' => 'Content',
-      'enabled' => FALSE,
+      'enabled' => TRUE,
+      'thresholds' => array(
+        'type' => 'exceeds',
+        'warning' => 10,
+        'critical' => NULL,
+      ),
       // Cache for one hour.
       'caching_time' => 3600,
       'table' => 'comment',
@@ -144,7 +149,12 @@ function monitoring_user_monitoring_sensor_info() {
     'value_label' => 'Users',
     'settings' => array(
       'category' => 'User activity',
-      'enabled' => FALSE,
+      'enabled' => TRUE,
+      'thresholds' => array(
+        'type' => 'exceeds',
+        'warning' => 10,
+        'critical' => NULL,
+      ),
       // Cache for one hour.
       'caching_time' => 3600,
       'table' => 'users',
