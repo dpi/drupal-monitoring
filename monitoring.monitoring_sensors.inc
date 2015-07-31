@@ -32,7 +32,13 @@ function monitoring_monitoring_sensor_info() {
       // Path of the repository relative to the Drupal root. Set to NULL if
       // the repository root is the same as Drupal root.
       'repo_path' => NULL,
-      'cmd' => 'git status --porcelain',
+      'status_cmd' => 'git status --porcelain',
+      'check_branch' => FALSE,
+      'ahead_cmd' => "git log --graph --pretty=format:'%h -%d %s (%ci)' @{u}..",
+      'branches_cmd' => 'git rev-parse --symbolic --branches',
+      'actual_branch_cmd' => 'git symbolic-ref HEAD --short',
+      'expected_branch' => NULL,
+      'submodules_cmd' => 'git submodule status --recursive',
     ),
   );
   $info['monitoring_disappeared_sensors'] = array(

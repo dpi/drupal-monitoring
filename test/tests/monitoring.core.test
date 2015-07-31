@@ -206,25 +206,103 @@ class MonitoringCoreTest extends MonitoringTestBase {
     // Enable the sensor and set cmd to output something
     monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
       'enabled' => TRUE,
-      'cmd' => 'printf "A addedfile.txt\nM sites/all/modules/monitoring/test/tests/monitoring.core.test\nD deleted file.txt"',
+      'status_cmd' => 'printf "A addedfile.txt\nM sites/all/modules/monitoring/test/tests/monitoring.core.test\nD deleted file.txt"',
+      'ahead_cmd' => 'true',
+      'submodules_cmd' => 'true',
     ));
     $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
     $this->assertTrue($result->isCritical());
     // The verbose output should contain the cmd output.
-    $this->assertTrue(strpos($result->getVerboseOutput(), "A addedfile.txt\nM sites/all/modules/monitoring/test/tests/monitoring.core.test\nD deleted file.txt") !== FALSE);
-    // Three lines of cmd output.
-    $this->assertEqual($result->getValue(), 3);
+    $verboseOutput = $result->getVerboseOutput();
+    $this->assertTrue(strpos($verboseOutput['status']['output']['#markup'], "<pre>A addedfile.txt\nM sites/all/modules/monitoring/test/tests/monitoring.core.test\nD deleted file.txt</pre>") !== FALSE);
     // Check if the sensor message has the expected value.
-    $this->assertEqual($result->getMessage(), 'Value 3, expected 0, Files in unexpected state: A addedfile.txt, M …modules/monitoring/test/tests/monitoring.core.test');
+    $this->assertEqual($result->getMessage(), "3 files in unexpected state: A addedfile.txt, M …modules/monitoring/test/tests/monitoring.core.test");
     // Now echo empty string
     monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
       'enabled' => TRUE,
-      'cmd' => 'echo ""',
+      'status_cmd' => 'true',
+      'ahead_cmd' => 'true',
+      'submodules_cmd' => 'true',
     ));
-    $result = $this->runSensor('monitoring_git_dirty_tree');
+    $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
     $this->assertTrue($result->isOk());
     // The message should say that it is ok.
     $this->assertTrue(strpos($result->getMessage(), 'Git repository clean') !== FALSE);
+    // Test 2 commits ahead of origin.
+    monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
+      'enabled' => TRUE,
+      'status_cmd' => 'true',
+      'ahead_cmd' => 'printf "a4ea5e3ac5b7cca0c96aee4d00447c36121bd128\n299d85344fab9befbf6a275a4b64bda7b464b493"',
+      'submodules_cmd' => 'true',
+    ));
+    $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
+    $this->assertTrue($result->isWarning());
+    $verboseOutput = $result->getVerboseOutput();
+    $this->assertTrue(strpos($verboseOutput['ahead']['output']['#markup'], "<pre>a4ea5e3ac5b7cca0c96aee4d00447c36121bd128\n299d85344fab9befbf6a275a4b64bda7b464b493</pre>") !== FALSE);
+    // Test not in main branch.
+    monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
+      'enabled' => TRUE,
+      'check_branch' => TRUE,
+      'status_cmd' => 'true',
+      'ahead_cmd' => 'true',
+      'actual_branch_cmd' => 'printf "7.0.x"',
+      'expected_branch' => '8.0.x',
+      'submodules_cmd' => 'true',
+    ));
+    $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
+    $this->assertTrue($result->isWarning());
+    $verboseOutput = $result->getVerboseOutput();
+    $this->assertTrue(strpos($verboseOutput['check_branch']['output']['#markup'], '7.0.x') !== FALSE);
+    $this->assertEqual($result->getMessage(), 'Active branch 7.0.x, expected 8.0.x');
+    // Test same as main branch.
+    monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
+      'enabled' => TRUE,
+      'check_branch' => TRUE,
+      'status_cmd' => 'true',
+      'ahead_cmd' => 'true',
+      'actual_branch_cmd' => 'printf "8.0.x"',
+      'expected_branch' => '8.0.x',
+      'submodules_cmd' => 'true',
+    ));
+    $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
+    $this->assertTrue($result->isOk());
+    $this->assertEqual($result->getMessage(), 'Git repository clean');
+    // Test submodule not initialized.
+    monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
+      'enabled' => TRUE,
+      'status_cmd' => 'true',
+      'ahead_cmd' => 'true',
+      'submodules_cmd' => 'printf -- "-a5066d1778b9ec7c86631234ff2795e777bdff12 test"',
+    ));
+    $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
+    $this->assertTrue($result->isCritical());
+    debug($result->getVerboseOutput());
+    $verboseOutput = $result->getVerboseOutput();
+    $this->assertTrue(strpos($verboseOutput['submodules']['output']['#markup'], "<pre>-a5066d1778b9ec7c86631234ff2795e777bdff12 test</pre>") !== FALSE);
+    $this->assertEqual($result->getMessage(), '1 submodules in unexpected state: -a5066d1778b9ec7c86631234ff2795e777bdff12 test');
+    // Test submodule with uncommitted changes.
+    monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
+      'enabled' => TRUE,
+      'status_cmd' => 'true',
+      'ahead_cmd' => 'true',
+      'submodules_cmd' => 'printf "+156fff6ee58497fa22b57c32e22e3f13377b4120 test (8.x-1.0-240-g156fff6)"',
+    ));
+    $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
+    $this->assertTrue($result->isCritical());
+    debug($result->getVerboseOutput());
+    $verboseOutput = $result->getVerboseOutput();
+    $this->assertTrue(strpos($verboseOutput['submodules']['output']['#markup'], "<pre>+156fff6ee58497fa22b57c32e22e3f13377b4120 test (8.x-1.0-240-g156fff6)</pre>") !== FALSE);
+    $this->assertEqual($result->getMessage(), '1 submodules in unexpected state: +156fff6ee58497fa22b57c32e22e3f13377b4120 test (8.x-1.0-240-g156fff6)');
+    // Test submodules in expected state.
+    monitoring_sensor_settings_save('monitoring_git_dirty_tree', array(
+      'enabled' => TRUE,
+      'status_cmd' => 'true',
+      'ahead_cmd' => 'true',
+      'submodules_cmd' => 'printf "a5066d1778b9ec7c86631234ff2795e777bdff12 test\n156fff6ee58497fa22b57c32e22e3f13377b4120 test (8.x-1.0-240-g156fff6)"',
+    ));
+    $result = monitoring_sensor_run('monitoring_git_dirty_tree', TRUE, TRUE);
+    $this->assertTrue($result->isOk());
+    $this->assertEqual($result->getMessage(), 'Git repository clean');
 
     // ======= Active sessions count tests ======= //
     // Create and login a user to have data in the sessions table.

@@ -403,10 +403,15 @@ function monitoring_sensor_details($form, &$form_state, SensorInfo $sensor_info)
       );
     }
     elseif ($verbose_output = $result->getVerboseOutput()) {
-      $form['sensor_result']['verbose']['output'] = array(
-        '#type' => 'markup',
-        '#markup' => '<pre>' . $verbose_output . '</pre>',
-      );
+      if (is_array($verbose_output)) {
+        $form['sensor_result']['verbose']['output'] = $verbose_output;
+      }
+      else {
+        $form['sensor_result']['verbose']['output'] = array(
+          '#type' => 'markup',
+          '#markup' => '<pre>' . $verbose_output . '</pre>',
+        );
+      }
     }
     else {
       $form['sensor_result']['verbose']['output'] = array(
