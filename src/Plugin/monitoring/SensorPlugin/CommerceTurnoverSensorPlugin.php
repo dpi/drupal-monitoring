@@ -29,8 +29,8 @@ class CommerceTurnoverSensorPlugin extends ContentEntityAggregatorSensorPlugin {
   /**
    * {@inheritdoc}
    */
-  protected function getEntityQueryAggregate($table, array $conditions, array $time_interval = array()) {
-    $query = parent::getEntityQueryAggregate($table, $conditions, $time_interval);
+  protected function getEntityQueryAggregate() {
+    $query = parent::getEntityQueryAggregate();
 
     // Get the field name for the amount field.
     $field_amount = $this->getFieldName($query, array('field' => 'commerce_order_total.amount'));

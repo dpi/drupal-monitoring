@@ -26,7 +26,8 @@ class MultigraphServicesTest extends RESTTestBase {
     'dblog',
     'hal',
     'rest',
-    'monitoring',
+    'node',
+    'basic_auth',
     'monitoring_multigraph',
   );
 
@@ -45,20 +46,6 @@ class MultigraphServicesTest extends RESTTestBase {
 
     $this->defaultMimeType = 'application/json';
     $this->defaultFormat = 'json';
-
-    // Enable REST API for monitoring resources.
-    $config = $this->config('rest.settings');
-    $settings = array(
-      'monitoring-multigraph' => array(
-        'GET' => array(
-          'supported_formats' => array($this->defaultFormat),
-          'supported_auth' => $this->defaultAuth,
-        ),
-      ),
-    );
-    $config->set('resources', $settings);
-    $config->save();
-    $this->rebuildCache();
 
     $this->servicesAccount = $this->drupalCreateUser(array(
       'restful get monitoring-multigraph',

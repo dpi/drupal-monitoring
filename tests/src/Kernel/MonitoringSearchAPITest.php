@@ -6,10 +6,9 @@
 
 namespace Drupal\Tests\monitoring\Kernel;
 
-use Drupal\entity_test\Entity\EntityTest;
+use Drupal\entity_test\Entity\EntityTestMulRevChanged;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\search_api\Entity\Index;
-use Drupal\search_api_db\Tests;
 
 /**
  * Tests for search API sensor.
@@ -40,12 +39,13 @@ class MonitoringSearchAPITest extends MonitoringUnitTestBase {
   public function setUp() {
     parent::setUp();
     // Install required database tables for each module.
-    $this->installSchema('search_api', ['search_api_item', 'search_api_task']);
+    $this->installSchema('search_api', ['search_api_item']);
+    $this->installEntitySchema('search_api_task');
     $this->installSchema('system', ['router', 'queue', 'key_value_expire']);
     $this->installSchema('user', ['users_data']);
 
-    // Install the schema for entity entity_test.
-    $this->installEntitySchema('entity_test');
+    // Install the schema for entity entity_test_mulrev_changed.
+    $this->installEntitySchema('entity_test_mulrev_changed');
 
     // Set up the required bundles.
     $this->createEntityTestBundles();
@@ -63,9 +63,9 @@ class MonitoringSearchAPITest extends MonitoringUnitTestBase {
 
     // Create content first to avoid a Division by zero error.
     // Two new articles, none indexed.
-    $entity = EntityTest::create(array('type' => 'article'));
+    $entity = EntityTestMulRevChanged::create(array('type' => 'article'));
     $entity->save();
-    $entity = EntityTest::create(array('type' => 'article'));
+    $entity = EntityTestMulRevChanged::create(array('type' => 'article'));
     $entity->save();
 
     $result = $this->runSensor('search_api_database_search_index');
@@ -75,11 +75,11 @@ class MonitoringSearchAPITest extends MonitoringUnitTestBase {
     $index = Index::load('database_search_index');
     $index->indexItems();
 
-    $entity = EntityTest::create(array('type' => 'article'));
+    $entity = EntityTestMulRevChanged::create(array('type' => 'article'));
     $entity->save();
-    $entity = EntityTest::create(array('type' => 'article'));
+    $entity = EntityTestMulRevChanged::create(array('type' => 'article'));
     $entity->save();
-    $entity = EntityTest::create(array('type' => 'article'));
+    $entity = EntityTestMulRevChanged::create(array('type' => 'article'));
     $entity->save();
 
     // New articles are not yet indexed.
@@ -122,8 +122,8 @@ class MonitoringSearchAPITest extends MonitoringUnitTestBase {
    * Sets up the necessary bundles on the test entity type.
    */
   protected function createEntityTestBundles() {
-    entity_test_create_bundle('item');
-    entity_test_create_bundle('article');
+    entity_test_create_bundle('item', NULL, 'entity_test_mulrev_changed');
+    entity_test_create_bundle('article', NULL, 'entity_test_mulrev_changed');
   }
 
 }

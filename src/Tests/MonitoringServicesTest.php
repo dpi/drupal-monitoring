@@ -18,7 +18,7 @@ use Drupal\rest\Tests\RESTTestBase;
  */
 class MonitoringServicesTest extends RESTTestBase {
 
-  public static $modules = array('dblog', 'hal', 'rest', 'monitoring', 'views');
+  public static $modules = array('dblog', 'basic_auth', 'monitoring', 'views', 'node');
 
   /**
    * User account created.
@@ -35,26 +35,6 @@ class MonitoringServicesTest extends RESTTestBase {
 
     $this->defaultMimeType = 'application/json';
     $this->defaultFormat = 'json';
-
-    // Enable REST API for monitoring resources.
-    $config = $this->config('rest.settings');
-    $settings = array(
-      'monitoring-sensor' => array(
-        'GET' => array(
-          'supported_formats' => array($this->defaultFormat),
-          'supported_auth' => $this->defaultAuth,
-        ),
-      ),
-      'monitoring-sensor-result' => array(
-        'GET' => array(
-          'supported_formats' => array($this->defaultFormat),
-          'supported_auth' => $this->defaultAuth,
-        ),
-      ),
-    );
-    $config->set('resources', $settings);
-    $config->save();
-    $this->rebuildCache();
 
     $this->servicesAccount = $this->drupalCreateUser(array('restful get monitoring-sensor', 'restful get monitoring-sensor-result'));
   }

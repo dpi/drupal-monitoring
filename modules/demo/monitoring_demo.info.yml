@@ -11,6 +11,6 @@ dependencies:
  - search_api_db
  - monitoring
  - rest
- - hal
+ - basic_auth
  - dblog
  - file
