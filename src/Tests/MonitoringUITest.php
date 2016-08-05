@@ -1086,6 +1086,39 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->submitThresholdSettings('test_sensor_exceeds', $thresholds);
     $this->assertText('Warning must be a number.');
     $this->assertText('Critical must be a number.');
+
+    // Test threshold exceeds with zero values for critical.
+    $thresholds = [
+      'critical' => 0,
+      'warning' => '',
+    ];
+    $this->submitThresholdSettings('test_sensor_exceeds', $thresholds);
+
+    $test_sensor_result_data = ['sensor_value' => 7];
+    \Drupal::state()->set('monitoring_test.sensor_result_data', $test_sensor_result_data);
+    $result = $this->runSensor('test_sensor_exceeds');
+    $this->assertTrue($result->isCritical());
+
+    $test_sensor_result_data = ['sensor_value' => 0];
+    \Drupal::state()->set('monitoring_test.sensor_result_data', $test_sensor_result_data);
+    $result = $this->runSensor('test_sensor_exceeds');
+    $this->assertTrue($result->isOk());
+
+    // Test threshold exceeds with zero values for warning.
+    $thresholds = [
+      'critical' => '',
+      'warning' => 0,
+    ];
+    $this->submitThresholdSettings('test_sensor_exceeds', $thresholds);
+    $test_sensor_result_data = ['sensor_value' => 7];
+    \Drupal::state()->set('monitoring_test.sensor_result_data', $test_sensor_result_data);
+    $result = $this->runSensor('test_sensor_exceeds');
+    $this->assertTrue($result->isWarning());
+
+    $test_sensor_result_data = ['sensor_value' => 0];
+    \Drupal::state()->set('monitoring_test.sensor_result_data', $test_sensor_result_data);
+    $result = $this->runSensor('test_sensor_exceeds');
+    $this->assertTrue($result->isOk());
     return $thresholds;
   }
 
@@ -1133,6 +1166,40 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->submitThresholdSettings('test_sensor_falls', $thresholds);
     $this->assertText('Warning must be a number.');
     $this->assertText('Critical must be a number.');
+
+    // Test threshold fall with zero values for critical.
+    $thresholds = [
+      'critical' => 0,
+      'warning' => '',
+    ];
+    $this->submitThresholdSettings('test_sensor_falls', $thresholds);
+
+    $test_sensor_result_data = ['sensor_value' => -7];
+    \Drupal::state()->set('monitoring_test.sensor_result_data', $test_sensor_result_data);
+    $result = $this->runSensor('test_sensor_falls');
+    $this->assertTrue($result->isCritical());
+
+    $test_sensor_result_data = ['sensor_value' => 0];
+    \Drupal::state()->set('monitoring_test.sensor_result_data', $test_sensor_result_data);
+    $result = $this->runSensor('test_sensor_falls');
+    $this->assertTrue($result->isOk());
+
+    // Test threshold fall with zero values for warning.
+    $thresholds = [
+      'critical' => '',
+      'warning' => 0,
+    ];
+    $this->submitThresholdSettings('test_sensor_falls', $thresholds);
+
+    $test_sensor_result_data = ['sensor_value' => -7];
+    \Drupal::state()->set('monitoring_test.sensor_result_data', $test_sensor_result_data);
+    $result = $this->runSensor('test_sensor_falls');
+    $this->assertTrue($result->isWarning());
+
+    $test_sensor_result_data = ['sensor_value' => 0];
+    \Drupal::state()->set('monitoring_test.sensor_result_data', $test_sensor_result_data);
+    $result = $this->runSensor('test_sensor_falls');
+    $this->assertTrue($result->isOk());
     return $thresholds;
   }
 
