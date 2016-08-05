@@ -107,7 +107,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->assertEqual(trim($query_array[0]), 'SELECT sessions.uid AS uid, sessions.hostname AS hostname, sessions.timestamp AS timestamp', 'Found first query line.');
     $this->assertEqual(trim($query_array[1]), 'FROM', 'Found second query line.');
     // Skip line with session id in it.
-    $this->assertEqual(trim($query_array[3]), 'WHERE  (uid != :db_condition_placeholder_0) AND (timestamp > :db_condition_placeholder_1)', 'Found fourth query line.');
+    $this->assertEqual(trim($query_array[3]), 'WHERE (uid != :db_condition_placeholder_0) AND (timestamp > :db_condition_placeholder_1)', 'Found fourth query line.');
     $this->assertEqual(trim($query_array[4]), 'ORDER BY timestamp DESC', 'Found fifth query line.');
     $this->assertEqual(trim($query_array[5]), 'LIMIT 10 OFFSET 0', 'Found sixth query line.');
     $results = $this->xpath('//*[@id="unaggregated_result"]/div/table/tbody/tr')[0]->td;
