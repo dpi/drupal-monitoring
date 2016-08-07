@@ -3,7 +3,7 @@
  * @file
  * Monitoring bootstrap file.
  */
-
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Config\Config;
@@ -52,6 +52,58 @@ function monitoring_sensor_config() {
  */
 function monitoring_sensor_config_by_categories($enabled = TRUE) {
   return monitoring_sensor_manager()->getSensorConfigByCategories($enabled);
+}
+
+/**
+ * Implements hook_modules_installed().
+ */
+function monitoring_modules_installed($modules) {
+  // Update the installed modules.
+  foreach ($modules as $module) {
+    // Check for dependencies that are not initialized.
+    if(\Drupal::moduleHandler()->implementsHook($module, 'requirements') && !SensorConfig::load('core_requirements_' . $module)) {
+      initialize_requirements_sensors($module);
+    }
+  }
+}
+
+/**
+ * Initialize core requirements sensors.
+ *
+ * @param string $module
+ *   Name of the module to create a requirements sensor for.
+ *
+ * @return bool
+ *   TRUE if a sensor was created, FALSE otherwise.
+ */
+function initialize_requirements_sensors($module) {
+  // Skip update module as there is a separate sensors for core and contrib.
+  if ($module == 'update') {
+    return FALSE;
+  }
+  $sensor = SensorConfig::create(array(
+    'id' => 'core_requirements_' . $module,
+    'label' => new FormattableMarkup('Module @module', array('@module' => $module)),
+    'description' => new FormattableMarkup('Requirements of the @module module', array('@module' => $module)),
+    'plugin_id' => 'core_requirements',
+    'value_type' => 'no_value',
+    'category' => 'Requirements',
+    'caching_time' => 3600,
+    'status' => TRUE,
+    'settings' => array(
+      'module' => $module,
+      // List requirements keys which reports will be suppressed.
+      'exclude_keys' => array(),
+    ),
+    'dependencies' => array('module' => $module),
+  ));
+  // Ignore the cron key for system requirements, as we have a separate
+  // sensor for this.
+  if ($module == 'system') {
+    $sensor->settings['exclude_keys'][] = 'cron';
+  }
+  $sensor->save();
+  return TRUE;
 }
 
 /**

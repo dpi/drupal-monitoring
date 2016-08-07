@@ -14,6 +14,14 @@ monitoring.sensors_overview_settings:
   requirements:
     _permission: 'administer monitoring'
 
+monitoring.rebuild_sensor_list:
+  path: '/admin/config/system/monitoring/sensors/rebuild'
+  defaults:
+    _controller: '\Drupal\monitoring\Controller\RebuildSensorList::rebuild'
+    _title: 'Rebuild sensor list'
+  requirements:
+    _permission: 'administer monitoring'
+
 monitoring.sensor_list:
   path: '/admin/reports/monitoring'
   defaults:

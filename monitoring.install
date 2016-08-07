@@ -72,32 +72,7 @@ function monitoring_install() {
   drupal_load_updates();
 
   foreach (\Drupal::moduleHandler()->getImplementations('requirements') as $module) {
-    // Skip update module as there is a separate sensors for core and contrib.
-    if ($module == 'update') {
-      continue;
-    }
-    $sensor = SensorConfig::create(array(
-      'id' => 'core_requirements_' . $module,
-      'label' => SafeMarkup::format('Module @module', array('@module' => $module)),
-      'description' => SafeMarkup::format('Requirements of the @module module', array('@module' => $module)),
-      'plugin_id' => 'core_requirements',
-      'value_type' => 'no_value',
-      'category' => 'Requirements',
-      'caching_time' => 3600,
-      'status' => TRUE,
-      'settings' => array(
-        'module' => $module,
-        // List requirements keys which reports will be suppressed.
-        'exclude_keys' => array(),
-      ),
-      'dependencies' => array('module' => $module),
-    ));
-    // Ignore the cron key for system requirements, as we have a separate
-    // sensor for this.
-    if ($module == 'system') {
-      $sensor->settings['exclude_keys'][] = 'cron';
-    }
-    $sensor->save();
+    initialize_requirements_sensors($module);
   }
 }
 

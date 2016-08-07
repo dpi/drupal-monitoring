@@ -35,6 +35,34 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
   }
 
   /**
+   * Tests that requirements sensors are properly updated when installing and
+   * uninstalling a module.
+   */
+  public function testUpdateRequirementsSensors() {
+    // Create and login user with permission to view monitoring reports.
+    $test_user = $this->drupalCreateUser([
+      'monitoring reports',
+      'administer monitoring',
+    ]);
+    $this->drupalLogin($test_user);
+
+    // Assert updates when installing and uninstalling the past module.
+    $this->drupalGet('admin/reports/monitoring');
+    $this->assertNoRaw('<span title="Requirements of the past module">Module past</span>');
+    $this->installModules(['past']);
+    $this->drupalGet('admin/reports/monitoring');
+    $this->assertRaw('<span title="Requirements of the past module">Module past</span>');
+    $this->uninstallModules(['past']);
+    $this->drupalGet('admin/reports/monitoring');
+    $this->assertNoRaw('<span title="Requirements of the past module">Module past</span>');
+
+    // Assert the rebuild update changes.
+    $this->drupalGet('/admin/config/system/monitoring/sensors/rebuild');
+    $this->assertText('No changes were made.');
+
+  }
+
+  /**
    * Tests successful user logins through watchdog sensor.
    *
    * @see DatabaseAggregatorSensorPlugin
