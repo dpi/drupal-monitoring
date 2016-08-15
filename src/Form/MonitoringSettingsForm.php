@@ -47,6 +47,12 @@ class MonitoringSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('sensor_call_logging'),
       '#description' => $this->t('Control local logging of sensor call results.'),
     );
+    $form['cron_run_sensors'] = [
+      '#title' => $this->t('Run sensors during cron runs'),
+      '#type' => 'checkbox',
+      '#default_value' => $config->get('cron_run_sensors'),
+      '#description' => $this->t('In this mode, monitoring will not be able to detect if cron is running. It is recommended to fetch sensor results with drush or through REST requests for a more reliable setup.'),
+    ];
 
     return parent::buildForm($form, $form_state);
   }
@@ -59,6 +65,7 @@ class MonitoringSettingsForm extends ConfigFormBase {
 
     $this->config('monitoring.settings')
       ->set('sensor_call_logging', $form_state->getValue('sensor_call_logging'))
+      ->set('cron_run_sensors', $form_state->getValue('cron_run_sensors'))
       ->save();
   }
 

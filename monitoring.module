@@ -673,3 +673,15 @@ function monitoring_search_api_index_update(IndexInterface $index) {
     $sensor->save();
   }
 }
+
+/**
+ * Implements hook_cron().
+ */
+function monitoring_cron() {
+  // Run sensors to collect data for each of them, if the setting allows it.
+  if (\Drupal::config('monitoring.settings')->get('cron_run_sensors')) {
+    // The result data can be captured through hook_monitoring_sensor_run.
+    \Drupal::service('monitoring.sensor_runner')->runSensors();
+  }
+
+}

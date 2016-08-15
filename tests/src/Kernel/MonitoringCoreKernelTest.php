@@ -35,6 +35,38 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   }
 
   /**
+   * Tests monitoring_cron.
+   */
+  public function testCronRunAllEnabledSensors() {
+    // Per default cron_run_sensors is false, this should not run any sensors.
+    \Drupal::cache('default')->deleteAll();
+    monitoring_cron();
+    $cid = 'monitoring_sensor_result:test_sensor';
+    $cache = \Drupal::cache('default')->get($cid);
+    // Checks that the cache is empty when cron is disabled.
+    $this->assertTrue(!is_object($cache));
+    $sensorConfig = SensorConfig::load('test_sensor');
+    $result = \Drupal::service('monitoring.sensor_runner')->runSensors([$sensorConfig]);
+    // Since after a sensor ran its result is cached, check if it is not cached.
+    $this->assertTrue(!$result[0]->isCached());
+
+    // Allow running all enabled sensors.
+    \Drupal::configFactory()
+      ->getEditable('monitoring.settings')
+      ->set('cron_run_sensors', TRUE)
+      ->save();
+    \Drupal::cache('default')->deleteAll();
+    monitoring_cron();
+    $cache = \Drupal::cache('default')->get($cid);
+    // Checks that the cache is not empty when cron is enabled.
+    $this->assertTrue(is_object($cache));
+    $sensorConfig = SensorConfig::load('test_sensor');
+    $result = \Drupal::service('monitoring.sensor_runner')->runSensors([$sensorConfig]);
+    // Since after a sensor ran its result is cached, check if it is cached.
+    $this->assertTrue($result[0]->isCached());
+  }
+
+  /**
    * Tests cron last run age sensor.
    *
    * @see CronLastRunAgeSensorPlugin.

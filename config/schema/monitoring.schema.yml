@@ -6,6 +6,9 @@ monitoring.settings:
     sensor_call_logging:
       type: string
       label: 'Call logging'
+    cron_run_sensors:
+      type: boolean
+      label: 'Run sensors during cron runs'
 
 # Config schema for sensor config entity.
 monitoring.sensor_config.*:

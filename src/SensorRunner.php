@@ -15,7 +15,6 @@ use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\monitoring\Sensor\DisabledSensorException;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring\Sensor\SensorManager;
-use Drupal\monitoring\SensorPlugin\ExtendedInfoSensorPluginInterface;
 
 /**
  * Instantiate and run requested sensors.
@@ -139,6 +138,9 @@ class SensorRunner {
     }
     $this->logResults($results);
     $this->cacheResults($results);
+    // Trigger a hook to allow processing of sensors data.
+    \Drupal::moduleHandler()->invokeAll('monitoring_run_sensors', [$results]);
+
     return $results;
   }
 
