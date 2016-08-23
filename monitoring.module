@@ -6,9 +6,6 @@
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Config\Config;
-use Drupal\Core\Config\FileStorage;
-use Drupal\Core\Extension\Extension;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Url;
 use Drupal\monitoring\Entity\SensorConfig;
@@ -259,6 +256,30 @@ function monitoring_sensor_result_last($sensor_name) {
     ->sort('timestamp', 'DESC')
     ->sort('record_id', 'DESC')
     ->range(0, 1)
+    ->execute();
+
+  if (!empty($result)) {
+    return entity_load('monitoring_sensor_result', reset($result));
+  }
+
+  return NULL;
+}
+
+/**
+ * Gets second last sensor result.
+ *
+ * @param string $sensor_name
+ *   The name of the sensor.
+ *
+ * @return \Drupal\monitoring\Entity\SensorResultEntity|null
+ *   A SensorResultEntity representing the second last sensor result.
+ */
+function monitoring_sensor_result_second_last($sensor_name) {
+  $result = \Drupal::entityQuery('monitoring_sensor_result')
+    ->condition('sensor_name', $sensor_name)
+    ->sort('timestamp', 'DESC')
+    ->sort('record_id', 'DESC')
+    ->range(1, 1)
     ->execute();
 
   if (!empty($result)) {

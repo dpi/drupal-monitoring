@@ -32,10 +32,3 @@ function monitoring_test_commerce_currency_info_alter(&$currencies, $langcode) {
   $currencies['CHF']['thousands_separator'] = '\'';
   $currencies['CHF']['code_placement'] = 'before';
 }
-
-/**
- * Implements hook_monitoring_run_sensors().
- */
-function monitoring_test_monitoring_run_sensors($results) {
-
-}
