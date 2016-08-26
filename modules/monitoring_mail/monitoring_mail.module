@@ -47,6 +47,20 @@ function monitoring_mail_mail($key, &$message, $params) {
 
   // @todo Set header to build a per-sensor thread.
   // Set the mail header.
+
+  // Set the header message id.
+  $message_id = '<' . $result->getSensorId() . '.' . time() . '@' . \Drupal::request()->getHost() . '>';
+  $message['headers']['message-id'] = $message_id;
+
+  // Set the header references, if there is a previous transition.
+  $storage = \Drupal::keyValue('monitoring_mail_key');
+  if ($references = $storage->get($result->getSensorId())) {
+    $message['headers']['references'] = $references;
+  }
+
+  // Store the message id of the current sensor transition.
+  $storage->set($result->getSensorId(), $message_id);
+
 }
 
 /**

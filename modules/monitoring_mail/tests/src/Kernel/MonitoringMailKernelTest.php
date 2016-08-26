@@ -63,6 +63,11 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
     $this->assertEquals('CRITICAL', $result->getStatus());
     $this->assertEquals(1, count($this->getMails()));
 
+    // Check if the 'mail header message ID' contains sensor_id and host name.
+    $mails = $this->getMails();
+    $this->assertContains('test_sensor_falls', $mails[0]['headers']['message-id']);
+    $this->assertContains(\Drupal::request()->getHost(), $mails[0]['headers']['message-id']);
+
     // Run the same sensor again and make sure no additional mail is sent,
     // because its status has not been changed.
     $result = $sensor_runner->runSensors([$sensorConfig])[0];
@@ -85,6 +90,10 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
     $result = $sensor_runner->runSensors([$sensorConfig])[0];
     $this->assertEquals('WARNING', $result->getStatus());
     $this->assertEquals(2, count($this->getMails()));
+
+    // Check if the 'mail header references' contains the previous message ID.
+    $mails = $this->getMails();
+    $this->assertEquals($mails[0]['headers']['message-id'], $mails[1]['headers']['references']);
 
     // Change sensor threshold settings so that the sensor switches to OK.
     $sensorConfig->thresholds['warning'] = 0;
