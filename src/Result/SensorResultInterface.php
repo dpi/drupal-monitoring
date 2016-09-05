@@ -6,100 +6,14 @@
 
 namespace Drupal\monitoring\Result;
 
-use Drupal\monitoring\Entity\SensorConfig;
+use Drupal\monitoring\Entity\SensorResultDataInterface;
 
 /**
  * Interface for a sensor result.
  *
  * @todo more
  */
-interface SensorResultInterface {
-
-  /**
-   * Sensor status OK.
-   *
-   * @var string
-   */
-  const STATUS_OK = 'OK';
-
-  /**
-   * Sensor status INFO.
-   *
-   * @var string
-   */
-  const STATUS_INFO = 'INFO';
-
-  /**
-   * Sensor status WARNING.
-   *
-   * @var string
-   */
-  const STATUS_WARNING = 'WARNING';
-
-  /**
-   * Sensor status CRITICAL.
-   *
-   * @var string
-   */
-  const STATUS_CRITICAL = 'CRITICAL';
-
-  /**
-   * Sensor status UNKNOWN.
-   *
-   * @var string
-   */
-  const STATUS_UNKNOWN = 'UNKNOWN';
-
-  /**
-   * Gets sensor status.
-   *
-   * @return string
-   *   Sensor status.
-   */
-  public function getStatus();
-
-  /**
-   * Gets a human readable label for the sensor status.
-   *
-   * @return string
-   *   Sensor status label.
-   */
-  public function getStatusLabel();
-
-  /**
-   * Sets sensor status.
-   *
-   * @param string $status
-   *   One of SensorResultInterface::STATUS_* constants.
-   */
-  public function setStatus($status);
-
-  /**
-   * Gets sensor status message.
-   *
-   * Must not be called on an uncompiled result.
-   *
-   * @return string
-   *   Sensor status message.
-   */
-  public function getMessage();
-
-  /**
-   * Sets the final result message.
-   *
-   * If this is set, then the compilation will not extend the message in any
-   * way and the sensor completely responsible for making sure that all
-   * relevant information like the sensor value is part of the message.
-   *
-   * @param string $message
-   *   Message to be set.
-   * @param array $variables
-   *   Dynamic values to be replaced for placeholders in the message.
-   *
-   * @see self::addStatusMessage()
-   */
-  public function setMessage($message, array $variables = array());
-
+interface SensorResultInterface extends SensorResultDataInterface {
   /**
    * Adds sensor status message.
    *
@@ -128,14 +42,6 @@ interface SensorResultInterface {
   public function compile();
 
   /**
-   * Gets the sensor metric value.
-   *
-   * @return mixed
-   *   Whatever value the sensor is supposed to return.
-   */
-  public function getValue();
-
-  /**
    * Gets the sensor metric value formatted for UI output.
    *
    * @param mixed $value
@@ -147,6 +53,22 @@ interface SensorResultInterface {
   public function getFormattedValue($value);
 
   /**
+   * Gets the sensor expected value.
+   *
+   * @return mixed
+   *   Whatever value the sensor is supposed to return.
+   */
+  public function getExpectedValue();
+
+  /**
+   * Sets sensor status.
+   *
+   * @param string $status
+   *   One of SensorResultInterface::STATUS_* constants.
+   */
+  public function setStatus($status);
+
+  /**
    * Sets sensor value.
    *
    * @param mixed $value
@@ -154,12 +76,26 @@ interface SensorResultInterface {
   public function setValue($value);
 
   /**
-   * Gets the sensor expected value.
+   * Sets the final result message.
    *
-   * @return mixed
-   *   Whatever value the sensor is supposed to return.
+   * If this is set, then the compilation will not extend the message in any
+   * way and the sensor completely responsible for making sure that all
+   * relevant information like the sensor value is part of the message.
+   *
+   * @param string $message
+   *   Message to be set.
+   * @param array $variables
+   *   Dynamic values to be replaced for placeholders in the message.
    */
-  public function getExpectedValue();
+  public function setMessage($message, array $variables = array());
+
+  /**
+   * Sets sensor execution time in ms.
+   *
+   * @param float $time
+   *   Sensor execution time in ms.
+   */
+  public function setExecutionTime($time);
 
   /**
    * Sets sensor expected value.
@@ -177,21 +113,6 @@ interface SensorResultInterface {
   public function setExpectedValue($value);
 
   /**
-   * Get sensor execution time in ms.
-   *
-   * @return float
-   */
-  public function getExecutionTime();
-
-  /**
-   * Sets sensor execution time in ms.
-   *
-   * @param float $time
-   *   Sensor execution time in ms.
-   */
-  public function setExecutionTime($time);
-
-  /**
    * Casts/processes the sensor value into numeric representation.
    *
    * @return number
@@ -206,14 +127,6 @@ interface SensorResultInterface {
    *   Cached flag.
    */
   public function isCached();
-
-  /**
-   * The result data timestamp.
-   *
-   * @return int
-   *   UNIX timestamp.
-   */
-  public function getTimestamp();
 
   /**
    * Gets sensor result data as array.

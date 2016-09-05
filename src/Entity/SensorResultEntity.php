@@ -6,9 +6,11 @@
 
 namespace Drupal\monitoring\Entity;
 
+use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\monitoring\Result\SensorResult;
 
 /**
  * The monitoring_sensor_result entity class.
@@ -28,7 +30,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   }
  * )
  */
-class SensorResultEntity extends ContentEntityBase {
+class SensorResultEntity extends ContentEntityBase implements SensorResultDataInterface {
 
   /**
    * {@inheritdoc}
@@ -71,4 +73,94 @@ class SensorResultEntity extends ContentEntityBase {
     return $fields;
   }
 
+  /**
+   * Gets sensor name.
+   *
+   * @return string
+   *   Sensor name.
+   */
+  protected function getSensorName() {
+    return $this->get('sensor_name')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getStatus() {
+    return $this->get('sensor_status')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getStatusLabel() {
+    $labels = SensorResult::getStatusLabels();
+    return $labels[$this->get('sensor_status')->value];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getValue() {
+    $this->get('sensor_value')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMessage() {
+    $this->get('sensor_message')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getExecutionTime() {
+    $this->get('execution_time')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTimestamp() {
+    $this->get('timestamp')->value;
+  }
+
+  /**
+   * Sets sensor name.
+   *
+   * @param string $name
+   *   The name of the sensor.
+   */
+  protected function setSensorName($name) {
+    $this->set('sensor_name', $name);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setStatus($status) {
+    $this->set('sensor_status', $status);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setValue($sensor_value) {
+    $this->set('sensor_value', $sensor_value);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setMessage($message, array $variables = array()) {
+    $this->set('sensor_message', SafeMarkup::format($message, $variables));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setExecutionTime($time) {
+    $this->set('execution_time', $time);
+  }
 }

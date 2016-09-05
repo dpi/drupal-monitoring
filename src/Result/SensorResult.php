@@ -125,7 +125,6 @@ class SensorResult implements SensorResultInterface {
     return $this->getResultData('sensor_status');
   }
 
-
   /**
    * {@inheritdoc}
    */

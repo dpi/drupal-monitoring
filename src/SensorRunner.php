@@ -225,7 +225,7 @@ class SensorRunner {
       $old_status = NULL;
       // Try to load the previous log result for this sensor.
       if ($last_result = monitoring_sensor_result_last($result->getSensorId())) {
-        $old_status = $last_result->sensor_status->value;
+        $old_status = $last_result->getStatus();
       }
 
       // Check if we need to log the result.
