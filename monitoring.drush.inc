@@ -4,6 +4,10 @@
  * Drush support for monitoring.
  */
 
+use Drupal\Component\Serialization\Json;
+use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Utility\Unicode;
+use Drupal\monitoring\Result\SensorResult;
 use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\monitoring\Sensor\DisabledSensorException;
 use Drupal\monitoring\Sensor\NonExistingSensorException;
@@ -60,14 +64,20 @@ function monitoring_drush_command() {
     'options' => array(
       'verbose' => 'Display verbose information.',
       'force' => 'If the sensor execution should be forced in case cached result is available.',
-      'output' => 'The output format. Currently "table" and "json" available. Defaults to "table".',
-      'expand' => 'Relevant only for the json output. Currently "sensor_info" value supported.',
-      'show-exec-time' => 'Relevant for the table output listing all results. Will expand the table with execution time info.'
+      'output' => 'The output format. Currently "table", "json" and "sensu" available. Defaults to "table".',
+      'expand' => 'Relevant only for the json output. Currently "sensor" value supported.',
+      'show-exec-time' => 'Relevant for the table output listing all results. Will expand the table with execution time info.',
+      'sensu-source' => 'Relevant only for sensu output. The sensu source. Defaults to the host name.',
+      'sensu-ttl' => 'Relevant only for sensu output. Sensu TTL (Time to live)',
+      'sensu-handlers' => 'Relevant only for sensu output. A comma separated list of Sensu handlers (names).',
+      'sensu-metric-handlers' => 'Relevant only for sensu output. Defaults to the Sensu handlers.',
+      'sensu-metrics' => 'Relevant only for sensu output. Expose numeric sensors additionally as metrics. Enabled by default.',
     ),
     'examples' => array(
-      'drush monitoring-result monitoring_git_dirty_tree' => 'Runs sensor to monitor the git status.',
-      'drush monitoring-result --verbose monitoring_git_dirty_tree' => 'Runs sensor to monitor the git status and displays verbose information.',
-      'drush monitoring-result --output=json --watchdog=disable' => 'Will output the sensor results in json format. The option --watchdog=disable will suppress watchdog output to console.',
+      'drush monitoring-run monitoring_git_dirty_tree' => 'Runs sensor to monitor the git status.',
+      'drush monitoring-run --verbose monitoring_git_dirty_tree' => 'Runs sensor to monitor the git status and displays verbose information.',
+      'drush monitoring-run --output=json --watchdog=disable' => 'Will output the sensor results in json format. The option --watchdog=disable will suppress watchdog output to console.',
+      'drush monitoring-run --output=sensu --sensu-source=example.org --sensu-ttl=600 --sensu-handlers=email,pagerduty' => 'Will output the sensor results in sensu format. The option --sensu-source=example.org will provide the sensu source. The option --sensu-ttl=600 will provide the sensor 600 seconds time to live.'
     ),
     'drupal dependencies' => array('monitoring'),
   );
@@ -196,6 +206,8 @@ function monitoring_drush_info_single($sensor_name) {
  *   3 - CRITICAL
  */
 function monitoring_drush_run($sensor_name = NULL) {
+  global $base_root;
+
   $force_run = (bool) drush_get_option('force');
   $verbose = (bool) drush_get_option('verbose');
   $output = drush_get_option('output', 'table');
@@ -224,6 +236,20 @@ function monitoring_drush_run($sensor_name = NULL) {
   elseif ($output == 'json') {
     monitoring_drush_result_output_json($results, $expand);
   }
+  elseif ($output == 'sensu') {
+    $source = drush_get_option('sensu-source', $_SERVER['HTTP_HOST']);
+    $ttl = (int) drush_get_option('sensu-ttl');
+    $handlers = [];
+    if (drush_get_option('sensu-handlers')) {
+      $handlers = explode(',', drush_get_option('sensu-handlers'));
+    }
+    $metric_handlers = [];
+    if (drush_get_option('sensu-metric-handlers')) {
+      $metric_handlers = explode(',', drush_get_option('sensu-metric-handlers'));
+    }
+    $metrics = drush_get_option('sensu-metrics', 1);
+    monitoring_drush_result_output_sensu($results, $source, $ttl, $handlers, $metric_handlers, $metrics);
+  }
   else {
     drush_set_error('MONITORING_UNKNOWN_OUTPUT', dt('Unknown output @output.', array('@output' => $output)));
     return MONITORING_DRUSH_SENSOR_STATUS_UNKNOWN;
@@ -244,6 +270,67 @@ function monitoring_drush_run($sensor_name = NULL) {
 
   // Set the exit status based on the sensor status.
   return $status;
+}
+
+/**
+ * Results output in sensu format.
+ *
+ * @param \Drupal\monitoring\Result\SensorResultInterface[] $results
+ *   List of sensor result objects.
+ * @param string $source
+ *   Sensu source.
+ * @param int $ttl
+ *   Sensor time to live.
+ * @param array $handlers
+ *   Sensu handlers.
+ * @param string $metric_handlers
+ *   Sensu metric handlers.
+ * @param bool $metrics
+ *   Sensu metrics.
+ */
+function monitoring_drush_result_output_sensu($results, $source, $ttl, $handlers, $metric_handlers, $metrics) {
+
+  $status_codes = [
+    SensorResultInterface::STATUS_OK => 0,
+    SensorResultInterface::STATUS_WARNING => 1,
+    SensorResultInterface::STATUS_CRITICAL => 2,
+    SensorResultInterface::STATUS_UNKNOWN => 3,
+    SensorResultInterface::STATUS_INFO => 0,
+  ];
+  foreach ($results as $name => $result) {
+    // Build sensu check result.
+    $sensu_output = [];
+    $sensu_output['name'] = $name;
+    $sensu_output['status'] = $status_codes[$result->getStatus()];
+    if ($ttl) {
+      $sensu_output['ttl'] = $ttl;
+    }
+    if ($handlers) {
+      $sensu_output['handlers'] = $handlers;
+    }
+    $sensu_output['output'] = $result->getMessage();
+    $sensu_output['interval'] = $result->getSensorInfo()->getCachingTime();
+    $sensu_output['duration'] = $result->getExecutionTime();
+    $sensu_output['source'] = $source;
+    drush_print(drupal_json_encode($sensu_output));
+
+    // Also print numeric sensors as metrics, if enabled.
+    if ($result->getSensorInfo()->isNumeric() && $metrics) {
+      $sensu_metric_output = $sensu_output;
+      $sensu_metric_output['name'] = $name . '_metric';
+      $sensu_metric_output['type'] = 'metric';
+      if ($metric_handlers) {
+        $sensu_metric_output['handlers'] = $metric_handlers;
+      }
+
+      // Build the metrics data.
+      $reversed_source = implode('.', array_reverse(explode('.', $sensu_output['source'])));
+      $value = $result->getValue();
+      $executed = $result->getTimestamp();
+      $sensu_metric_output['output'] = $reversed_source . '.' . $name . ' ' . $value . ' ' . $executed;
+      drush_print(drupal_json_encode($sensu_metric_output));
+    }
+  }
 }
 
 /**
