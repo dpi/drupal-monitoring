@@ -1,4 +1,4 @@
-name: Monitoring Mail
+name: Monitoring Mail (Experimental)
 type: module
 description: Escalation mail for sensor result transition
 package: Monitoring
