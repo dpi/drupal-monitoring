@@ -294,7 +294,7 @@ function monitoring_drush_result_output_sensu($results, $source, $ttl, $handlers
     }
     $sensu_output['output'] = $result->getMessage();
     $sensu_output['interval'] = $result->getSensorConfig()->getCachingTime();
-    $sensu_output['duration'] = $result->getExecutionTime();
+    $sensu_output['duration'] = $result->getExecutionTime() / 1000;
     $sensu_output['source'] = $source;
     drush_print(Json::encode($sensu_output));
 
