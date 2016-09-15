@@ -7,7 +7,7 @@ use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring\Result\SensorResultInterface;
 
 /**
- * Kernel tests for the core pieces of monitoring.
+ * Kernel tests for the mail pieces of monitoring.
  *
  * @group monitoring
  */
@@ -15,7 +15,16 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
 
   use AssertMailTrait;
 
-  public static $modules = ['dblog', 'monitoring_mail', 'automated_cron'];
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
+  public static $modules = [
+    'dblog',
+    'monitoring_mail',
+    'automated_cron'
+  ];
 
   /**
    * {@inheritdoc}
@@ -31,24 +40,29 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
 
     \Drupal::moduleHandler()->loadAllIncludes('install');
     monitoring_install();
+
+    // Set the site mail.
+    \Drupal::configFactory()
+      ->getEditable('system.site')
+      ->set('mail', 'site_mail@example.com')
+      ->save();
+
+    // Allow running all enabled sensors.
+    \Drupal::configFactory()
+      ->getEditable('monitoring.settings')
+      ->set('cron_run_sensors', TRUE)
+      ->save();
+    // Set a valid email address for this test.
+    \Drupal::configFactory()
+      ->getEditable('monitoring_mail.settings')
+      ->set('mail', 'mail@example.com')
+      ->save();
   }
 
   /**
    * Tests transition mail on sensor runs.
    */
   public function testTransitionMailOnSensorRuns() {
-    // Allow running all enabled sensors.
-    \Drupal::configFactory()
-      ->getEditable('monitoring.settings')
-      ->set('cron_run_sensors', TRUE)
-      ->save();
-
-    // Set a valid email address for this test.
-    \Drupal::configFactory()
-      ->getEditable('monitoring_mail.settings')
-      ->set('mail', 'mail@example.com')
-      ->save();
-
     $sensor_runner = \Drupal::service('monitoring.sensor_runner');
 
     // A backtrace is logged for CRITICAL sensor status by default.
@@ -62,11 +76,12 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
     $result = $sensor_runner->runSensors([$sensorConfig])[0];
     $this->assertEquals('CRITICAL', $result->getStatus());
     $this->assertEquals(1, count($this->getMails()));
-
-    // Check if the 'mail header message ID' contains sensor_id and host name.
+    // Check if the 'mail header Message-ID' contains sensor_id and host name.
     $mails = $this->getMails();
-    $this->assertContains('test_sensor_falls', $mails[0]['headers']['message-id']);
-    $this->assertContains(\Drupal::request()->getHost(), $mails[0]['headers']['message-id']);
+    $this->assertContains('test_sensor_falls', $mails[0]['headers']['Message-ID']);
+    $this->assertContains(\Drupal::request()->getHost(), $mails[0]['headers']['Message-ID']);
+    // Check the 'mail header From' value.
+    $this->assertEquals('MONITORING Drupal <site_mail@example.com>', $mails[0]['headers']['From']);
 
     // Run the same sensor again and make sure no additional mail is sent,
     // because its status has not been changed.
@@ -76,7 +91,6 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
 
     // Change sensor threshold settings so that the sensor switches to WARNING.
     $sensorConfig->thresholds['critical'] = 0;
-
     // Set severities to log also WARNING sensor status.
     \Drupal::configFactory()
       ->getEditable('monitoring_mail.settings')
@@ -90,10 +104,9 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
     $result = $sensor_runner->runSensors([$sensorConfig])[0];
     $this->assertEquals('WARNING', $result->getStatus());
     $this->assertEquals(2, count($this->getMails()));
-
-    // Check if the 'mail header references' contains the previous message ID.
+    // Check if the 'mail header References' contains the previous Message-ID.
     $mails = $this->getMails();
-    $this->assertEquals($mails[0]['headers']['message-id'], $mails[1]['headers']['references']);
+    $this->assertEquals($mails[0]['headers']['Message-ID'], $mails[1]['headers']['References']);
 
     // Change sensor threshold settings so that the sensor switches to OK.
     $sensorConfig->thresholds['warning'] = 0;

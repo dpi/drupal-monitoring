@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Monitoring Mail bootstrap file.
+ */
+
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\monitoring\Result\SensorResult;
@@ -11,17 +16,23 @@ use Drupal\monitoring\Result\SensorResultInterface;
  * Send monitoring result status transition mail.
  */
 function monitoring_mail_mail($key, &$message, $params) {
+  // Get values to build the mail data.
   /** @var \Drupal\monitoring\Result\SensorResultInterface $result */
   $result = $params['result'];
-
   /** @var \Drupal\monitoring\SensorConfigInterface $sensor_config */
   $sensor_config = $params['sensor_config'];
 
+  $site_config = \Drupal::config('system.site');
+  $site_mail = $site_config->get('mail');
+  $site_name = $site_config->get('name');
+
   $status_old = $params['status_old'];
   $status_new = $params['status_new'];
+  $status = $result->getStatusLabel();
+
+  $storage = \Drupal::keyValue('monitoring_mail_key');
 
   // Set the mail subject.
-  $status = $result->getStatusLabel();
   $subject = strtoupper($status) . ': ' . $result->getValue() . ' ' . $sensor_config->getLabel();
   $message['subject'] = $subject;
 
@@ -40,27 +51,21 @@ function monitoring_mail_mail($key, &$message, $params) {
   $message['body'] = $body;
 
   // Set the mail sender.
-  $site_config = \Drupal::config('system.site');
-  $site_mail = $site_config->get('mail');
-  $site_name = $site_config->get('name');
   $message['from'] = 'MONITORING ' . $site_name . ' <' . $site_mail . '>';
 
   // @todo Set header to build a per-sensor thread.
   // Set the mail header.
-
-  // Set the header message id.
+  $message['headers']['From'] = $message['from'];
+  // Set the header Message-ID.
   $message_id = '<' . $result->getSensorId() . '.' . time() . '@' . \Drupal::request()->getHost() . '>';
-  $message['headers']['message-id'] = $message_id;
-
-  // Set the header references, if there is a previous transition.
-  $storage = \Drupal::keyValue('monitoring_mail_key');
+  $message['headers']['Message-ID'] = $message_id;
+  // Set the header References, if there is a previous transition.
   if ($references = $storage->get($result->getSensorId())) {
-    $message['headers']['references'] = $references;
+    $message['headers']['References'] = $references;
   }
 
-  // Store the message id of the current sensor transition.
+  // Store the Message-ID of the current sensor transition.
   $storage->set($result->getSensorId(), $message_id);
-
 }
 
 /**
@@ -88,8 +93,6 @@ function monitoring_mail_monitoring_run_sensors(array $results) {
     }
 
     $status_old = SensorResultInterface::STATUS_UNKNOWN;
-
-    // @todo Implement interface for SensorResultEntity.
 
     // Try to load the previous log result for this sensor.
     if ($previous_result = monitoring_sensor_result_second_last($result->getSensorId())) {
