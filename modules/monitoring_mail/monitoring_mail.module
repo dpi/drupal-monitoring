@@ -92,10 +92,9 @@ function monitoring_mail_monitoring_run_sensors(array $results) {
       continue;
     }
 
-    $status_old = SensorResultInterface::STATUS_UNKNOWN;
-
     // Try to load the previous log result for this sensor.
-    if ($previous_result = monitoring_sensor_result_second_last($result->getSensorId())) {
+    $status_old = SensorResultInterface::STATUS_UNKNOWN;
+    if ($previous_result = $result->getPreviousResult()) {
       $status_old = $previous_result->getStatus();
     }
 
@@ -107,7 +106,6 @@ function monitoring_mail_monitoring_run_sensors(array $results) {
         'sensor_config' => $result->getSensorConfig(),
         'status_old' => $status_old,
         'status_new' => $status_new,
-        'last_result' => $previous_result,
       ];
 
       // Trigger result transition mail.

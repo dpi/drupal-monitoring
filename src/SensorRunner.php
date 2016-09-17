@@ -133,6 +133,7 @@ class SensorRunner {
     $results = array();
     foreach ($sensors_config_all as $name => $sensor_config) {
       if ($result = $this->runSensor($sensor_config)) {
+        $result->setPreviousResult(monitoring_sensor_result_last($result->getSensorId()));
         $results[$name] = $result;
       }
     }
@@ -224,8 +225,8 @@ class SensorRunner {
 
       $old_status = NULL;
       // Try to load the previous log result for this sensor.
-      if ($last_result = monitoring_sensor_result_last($result->getSensorId())) {
-        $old_status = $last_result->getStatus();
+      if ($result->getPreviousResult()) {
+        $old_status = $result->getPreviousResult()->getStatus();
       }
 
       // Check if we need to log the result.

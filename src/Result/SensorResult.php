@@ -1,13 +1,10 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring\Result\SensorResult.
- */
 
 namespace Drupal\monitoring\Result;
 
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Unicode;
+use Drupal\monitoring\Entity\SensorResultDataInterface;
 use Drupal\monitoring\Sensor\SensorCompilationException;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring\Sensor\Thresholds;
@@ -63,6 +60,13 @@ class SensorResult implements SensorResultInterface {
    * @var string
    */
   protected $verboseOutput;
+
+  /**
+   * The previous sensor result.
+   *
+   * @var \Drupal\monitoring\Entity\SensorResultDataInterface|null
+   */
+  protected $previousResult = NULL;
 
   /**
    * Instantiates a sensor result object.
@@ -512,4 +516,17 @@ class SensorResult implements SensorResultInterface {
     return $this->verboseOutput;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function setPreviousResult(SensorResultDataInterface $previous_result = NULL) {
+    $this->previousResult = $previous_result;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPreviousResult() {
+    return $this->previousResult;
+  }
 }

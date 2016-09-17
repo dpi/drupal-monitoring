@@ -9,6 +9,7 @@ namespace Drupal\Tests\monitoring\Kernel;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\monitoring\Entity\SensorConfig;
+use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 
@@ -768,6 +769,52 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $sensor->save();
     $result = $this->runSensor('db_test');
     $this->assertTrue($result->isCritical());
+  }
+
+  /**
+   * Tests if the previous sensor result retrieved is the expected one.
+   */
+  public function testPreviousSensorResult() {
+    // Allow running all enabled sensors.
+    \Drupal::configFactory()
+      ->getEditable('monitoring.settings')
+      ->set('cron_run_sensors', TRUE)
+      ->save();
+
+    \Drupal::cache('default')->deleteAll();
+    $sensor_runner = \Drupal::service('monitoring.sensor_runner');
+    // There should be no logged sensor result at the moment.
+    $sensorConfig = SensorConfig::load('test_sensor_falls');
+    $sensor_result_0 = monitoring_sensor_result_last($sensorConfig->id());
+    $this->assertNull($sensor_result_0);
+
+    // Run a sensor that is CRITICAL and check there is no previous result.
+    /** @var \Drupal\monitoring\Result\SensorResult $sensor_result_1 */
+    $sensor_result_1 = $sensor_runner->runSensors([$sensorConfig])[0];
+    $previous_result_1 = $sensor_result_1->getPreviousResult();
+    $this->assertEquals(SensorResultInterface::STATUS_CRITICAL, $sensor_result_1->getStatus());
+    $this->assertEquals($sensor_result_0, $previous_result_1);
+    $this->assertNull($previous_result_1);
+
+    // Run the same sensor and check the previous result status is
+    // same as $sensor_result_1.
+    /** @var \Drupal\monitoring\Result\SensorResult $sensor_result_2 */
+    $sensor_result_2 = $sensor_runner->runSensors([$sensorConfig])[0];
+    $previous_result_2 = $sensor_result_2->getPreviousResult();
+    $this->assertEquals(SensorResultInterface::STATUS_CRITICAL, $sensor_result_2->getStatus());
+    $this->assertEquals($sensor_result_1->getStatus(), $previous_result_2->getStatus());
+    $this->assertNotNull($previous_result_2);
+
+    // Change sensor threshold settings so that the sensor switches to WARNING.
+    $sensorConfig->thresholds['critical'] = 0;
+
+    // Run it again, a new log should be stored because the status has changed.
+    /** @var \Drupal\monitoring\Result\SensorResult $sensor_result_3 */
+    $sensor_result_3 = $sensor_runner->runSensors([$sensorConfig])[0];
+    $previous_result_3 = $sensor_result_3->getPreviousResult();
+    $this->assertEquals(SensorResultInterface::STATUS_WARNING, $sensor_result_3->getStatus());
+    $this->assertEquals($sensor_result_2->getStatus(), $previous_result_3->getStatus());
+    $this->assertNotNull($previous_result_3);
   }
 
 }

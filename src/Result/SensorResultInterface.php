@@ -14,6 +14,7 @@ use Drupal\monitoring\Entity\SensorResultDataInterface;
  * @todo more
  */
 interface SensorResultInterface extends SensorResultDataInterface {
+
   /**
    * Adds sensor status message.
    *
@@ -196,5 +197,23 @@ interface SensorResultInterface extends SensorResultDataInterface {
    *   The verbose output as a render array.
    */
   public function getVerboseOutput();
+
+  /**
+   * Sets the previous sensor result.
+   *
+   * @param \Drupal\monitoring\Entity\SensorResultDataInterface|null $previous_result
+   *   A SensorResultEntity representing the previous sensor result to set.
+   *   NULL if there is no previous result.
+   */
+  public function setPreviousResult(SensorResultDataInterface $previous_result = NULL);
+
+  /**
+   * Gets the previous sensor result.
+   *
+   * @return \Drupal\monitoring\Entity\SensorResultDataInterface|null
+   *   A SensorResultEntity representing the previous sensor result. NULL if
+   *   there is no previous result.
+   */
+  public function getPreviousResult();
 
 }
