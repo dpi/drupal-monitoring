@@ -261,7 +261,7 @@ class SensorResult implements SensorResultInterface {
         $messages[] = SafeMarkup::format($msg['message'], array_merge($default_variables, $msg['variables']));
       }
 
-      $message = implode(', ', $messages);
+      $message = strip_tags(implode(', ', $messages));
     }
 
     $this->setResultData('sensor_message', $message);
