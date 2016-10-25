@@ -6,6 +6,7 @@
 
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Logger\RfcLogLevel;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\search_api\Entity\Index;
@@ -93,4 +94,18 @@ function monitoring_event_severities() {
     RfcLogLevel::ALERT => 'alert',
     RfcLogLevel::CRITICAL => 'critical',
   );
+}
+
+/**
+ * Creates the used temporary files sensor config.
+ */
+function monitoring_update_8101() {
+  // Only create if the sensor config does not exist yet.
+  if (!SensorConfig::load('temporary_files_usages')) {
+    $config_path = drupal_get_path('module', 'monitoring') . '/config/install/monitoring.sensor_config.temporary_files_usages.yml';
+    $data = Yaml::decode(file_get_contents($config_path));
+    \Drupal::service('monitoring.sensor_manager')->clearCachedDefinitions();
+    SensorConfig::create($data)->trustData()->save();
+    return 'Created new sensor to monitor used temporary files';
+  }
 }

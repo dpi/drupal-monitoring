@@ -107,3 +107,13 @@ monitoring.category_autocomplete:
     _controller: '\Drupal\monitoring\Controller\CategoryAutocompleteController::autocomplete'
   requirements:
     _permission: 'administer monitoring'
+
+monitoring.make_file_permanent:
+  path: '/admin/reports/monitoring/sensors/{monitoring_sensor_config}/{file}'
+  defaults:
+    _controller: '\Drupal\monitoring\Controller\TemporaryFilesController::makePermanent'
+    _entity_form: 'monitoring_sensor_config.details'
+    _title: 'Make permanent'
+  requirements:
+    _permission: 'administer monitoring'
+    _csrf_token: 'TRUE'

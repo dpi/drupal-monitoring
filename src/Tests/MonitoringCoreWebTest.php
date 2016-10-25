@@ -10,6 +10,7 @@ use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\file\Entity\File;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\user\Entity\User;
 use Drupal\user\RoleInterface;
@@ -21,7 +22,7 @@ use Drupal\user\RoleInterface;
  */
 class MonitoringCoreWebTest extends MonitoringTestBase {
 
-  public static $modules = array('dblog', 'image', 'node', 'taxonomy');
+  public static $modules = array('dblog', 'image', 'node', 'taxonomy', 'file');
 
   /**
    * Tests individual sensors.
@@ -750,6 +751,118 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $login_time = (string) $xpath[0]->tr[0]->td[2];
     $expected_time = \Drupal::service('date.formatter')->format($event_time, 'short');
     $this->assertEqual($expected_time, $login_time);
+  }
+  /**
+   * Tests the default used temporary files sensor.
+   */
+  public function testTemporaryFilesUsages() {
+
+    $test_user = $this->drupalCreateUser([
+      'administer site configuration',
+      'access site reports',
+      'administer monitoring',
+      'monitoring reports',
+      'monitoring verbose',
+      'monitoring force run',
+    ]);
+    $this->drupalLogin($test_user);
+
+    // Make sure there is no used temporary files.
+    $result = $this->runSensor('temporary_files_usages');
+    $this->assertEqual($result->getValue(), 0);
+    $this->drupalPostForm('admin/reports/monitoring/sensors/temporary_files_usages', [], t('Run now'));
+    $this->assertText('0 used temporary files');
+
+    $this->drupalCreateContentType(['type' => 'article', 'name' => 'Article']);
+    // Create two nodes.
+    $node1 = $this->drupalCreateNode([
+      'type' => 'article',
+      'title' => 'Example article 1',
+    ]);
+    $node2 = $this->drupalCreateNode([
+      'type' => 'article',
+      'title' => 'Example article 2',
+    ]);
+
+    /** @var \Drupal\file\FileUsage\FileUsageInterface $file_usage */
+    $file_usage = \Drupal::service('file.usage');
+
+    // Insert two temporary files which are used by the monitoring_test module.
+    $file1 = File::create([
+      'fid' => 1,
+      'uuid' => 'aa',
+      'langcode' => 'en',
+      'uid' => 1,
+      'filename' => 'example_file_1',
+      'uri' => 'public://example_file_1',
+      'filemime' => 'example_mime',
+      'filesize' => 10,
+      'status' => 0,
+      'created' => time(),
+      'changed' => time(),
+    ]);
+    $file_usage->add($file1, 'monitoring_test', 'node', $node1->id());
+    $file1->setTemporary();
+    $file1->save();
+
+    $file2 = File::create([
+      'fid' => 2,
+      'uuid' => 'bb',
+      'langcode' => 'en',
+      'uid' => 2,
+      'filename' => 'example_file_2',
+      'uri' => 'public://example_file_2',
+      'filemime' => 'example_mime',
+      'filesize' => 10,
+      'status' => 0,
+      'created' => time(),
+      'changed' => time(),
+    ]);
+    $file_usage->add($file2, 'monitoring_test', 'node', $node2->id());
+    $file2->setTemporary();
+    $file2->save();
+
+    // Insert one permanent file which is used by the monitoring module.
+    $file3 = File::create([
+      'fid' => 3,
+      'uuid' => 'cc',
+      'langcode' => 'en',
+      'uid' => 3,
+      'filename' => 'example_file_3',
+      'uri' => 'public://example_file_3',
+      'filemime' => 'example_mime',
+      'filesize' => 10,
+      'status' => 1,
+      'created' => time(),
+      'changed' => time(),
+    ]);
+    $file_usage->add($file3, 'monitoring', 'node', $node1->id());
+    $file3->save();
+
+    // Run sensor and make sure there are two temporary files which are used.
+    $this->drupalPostForm('admin/reports/monitoring/sensors/temporary_files_usages', [], t('Run now'));
+    $result = $this->runSensor('temporary_files_usages');
+    $this->assertEqual($result->getValue(), 2);
+    $this->assertText('2 used temporary files');
+    $this->assertLink('example_file_1');
+    $this->assertLink('example_file_2');
+    $this->assertLink($node1->label());
+    $this->assertLink($node2->label());
+    $this->assertLink('Make permanent');
+
+    // Make the first file permanent and assert message.
+    $this->clickLink('Make permanent');
+    $this->assertText(t('File @file is now permanent.', ['@file' => 'example_file_1']));
+
+    // Make sure that the temporary files are in the list.
+    $this->assertText('1 used temporary files');
+    $this->assertLink('example_file_2');
+    $this->assertLink($node2->label());
+
+    // Make sure that the permanent files are not in the list.
+    $this->assertNoLink('example_file_3');
+    $this->assertNoLink('example_file_1');
+    $this->assertNoLink($node1->label());
   }
 
   /**
