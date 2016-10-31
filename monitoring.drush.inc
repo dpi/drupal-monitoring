@@ -239,11 +239,11 @@ function monitoring_drush_run($sensor_name = NULL) {
   elseif ($output == 'sensu') {
     $source = drush_get_option('sensu-source', $_SERVER['HTTP_HOST']);
     $ttl = (int) drush_get_option('sensu-ttl');
-    $handlers = [];
+    $handlers = array();
     if (drush_get_option('sensu-handlers')) {
       $handlers = explode(',', drush_get_option('sensu-handlers'));
     }
-    $metric_handlers = [];
+    $metric_handlers = array();
     if (drush_get_option('sensu-metric-handlers')) {
       $metric_handlers = explode(',', drush_get_option('sensu-metric-handlers'));
     }
@@ -290,16 +290,16 @@ function monitoring_drush_run($sensor_name = NULL) {
  */
 function monitoring_drush_result_output_sensu($results, $source, $ttl, $handlers, $metric_handlers, $metrics) {
 
-  $status_codes = [
+  $status_codes = array(
     SensorResultInterface::STATUS_OK => 0,
     SensorResultInterface::STATUS_WARNING => 1,
     SensorResultInterface::STATUS_CRITICAL => 2,
     SensorResultInterface::STATUS_UNKNOWN => 3,
     SensorResultInterface::STATUS_INFO => 0,
-  ];
+  );
   foreach ($results as $name => $result) {
     // Build sensu check result.
-    $sensu_output = [];
+    $sensu_output = array();
     $sensu_output['name'] = $name;
     $sensu_output['status'] = $status_codes[$result->getStatus()];
     if ($ttl) {
