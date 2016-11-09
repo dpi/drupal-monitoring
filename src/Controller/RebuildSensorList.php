@@ -3,6 +3,7 @@
 namespace Drupal\monitoring\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Serialization\Yaml;
 use Drupal\monitoring\Entity\SensorConfig;
 
 class RebuildSensorList extends ControllerBase {
@@ -42,6 +43,31 @@ class RebuildSensorList extends ControllerBase {
         drupal_set_message($this->t('The sensor @sensor has been removed.', ['@sensor' => $sensor->getLabel()]));
         $sensor->delete();
         $updated_sensors = TRUE;
+      }
+    }
+
+    // Rebuilds all non-addable sensors.
+    $definitions = \Drupal::service('monitoring.sensor_manager')->getDefinitions();
+    foreach ($definitions as $sensor_definition) {
+      if (!$sensor_definition['addable']) {
+        // Checks if the sensor is not created.
+        if (!SensorConfig::load($sensor_definition['id'])) {
+          $content = NULL;
+          // Check the two directories install and optional for sensors that need to be created.
+          foreach (['install', 'optional'] as $directory) {
+            $config_path = drupal_get_path('module', 'monitoring') . '/config/' . $directory . '/monitoring.sensor_config.' . $sensor_definition['id'] . '.yml';
+            if (file_exists($config_path)) {
+              $content = file_get_contents($config_path);
+              break;
+            }
+          }
+          // Create the sensor.
+          if ($content) {
+            $data = Yaml::decode($content);
+            SensorConfig::create($data)->trustData()->save();
+            drupal_set_message($this->t('The sensor @sensor has been created.', ['@sensor' => (string) $sensor_definition['label']]));
+          }
+        }
       }
     }
 

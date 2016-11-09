@@ -298,3 +298,7 @@ monitoring.settings.cron_last_run_time:
   type: monitoring.settings_base
   label: 'Cron last run time sensor settings'
   mapping: { }
+
+monitoring.settings.ultimate_cron_errors:
+  type: monitoring.settings_base
+  label: 'Ultimate cron errors sensor settings'
