@@ -16,6 +16,7 @@ test_dependencies:
  - captcha
  - past
  - ultimate_cron
+ - search_api_solr
 
 simplytest_dependencies:
  - monitoring_demo
