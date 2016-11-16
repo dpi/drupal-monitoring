@@ -261,6 +261,14 @@ monitoring.settings.disk_usage:
       label: Directory
       type: string
 
+monitoring.settings.system_load:
+  type: monitoring.settings_base
+  label: 'Monitor system load'
+  mapping:
+    average_monitored:
+      label: Average
+      type: string
+
 monitoring.settings.monitoring_installed_modules:
   type: monitoring.settings_base
   label: 'Installed modules sensor settings'
