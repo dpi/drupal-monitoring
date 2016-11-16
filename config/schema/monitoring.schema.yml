@@ -318,3 +318,14 @@ monitoring.settings.cron_last_run_time:
 monitoring.settings.ultimate_cron_errors:
   type: monitoring.settings_base
   label: 'Ultimate cron errors sensor settings'
+
+monitoring.settings.monitoring_system_memory:
+  type: monitoring.settings_base
+  label: 'System memory sensor settings'
+  mapping:
+    memory:
+      type: string
+      label: 'Memory'
+    value:
+      type: string
+      label: 'Value'
