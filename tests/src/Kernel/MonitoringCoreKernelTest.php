@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring\Tests\MonitoringCoreWebTest.
- */
 
 namespace Drupal\Tests\monitoring\Kernel;
 
@@ -20,7 +16,14 @@ use Drupal\node\Entity\NodeType;
  */
 class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
 
-  public static $modules = array('dblog', 'image', 'file', 'node', 'taxonomy', 'automated_cron');
+  public static $modules = [
+    'dblog',
+    'image',
+    'file',
+    'node',
+    'taxonomy',
+    'automated_cron',
+  ];
 
   /**
    * {@inheritdoc}
@@ -70,7 +73,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests cron last run age sensor.
    *
-   * @see CronLastRunAgeSensorPlugin.
+   * @see CronLastRunAgeSensorPlugin
    */
   public function testCronLastRunAgeSensorPlugin() {
     // Fake cron run 1d+1s ago.
@@ -145,9 +148,9 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
       'id' => 'core_queue_monitoring_test',
       'plugin_id' => 'queue_size',
       'value_type' => 'number',
-      'settings' => array(
-        'queue' => 'monitoring_test'
-      )
+      'settings' => [
+        'queue' => 'monitoring_test',
+      ],
     ));
     $sensor_config->save();
 
@@ -324,7 +327,6 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $this->assertLink('7');
   }
 
-
   /**
    * Tests requirements sensors.
    *
@@ -395,7 +397,6 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $this->assertEqual($result->getMessage(), 'requirement3, requirement3 description');
 
     // Check verbose message. All output should be part of it.
-
     $verbose_output = $result->getVerboseOutput();
     $this->setRawContent(\Drupal::service('renderer')->renderPlain($verbose_output));
     $this->assertText('requirement1');

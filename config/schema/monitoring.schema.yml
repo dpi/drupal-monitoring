@@ -319,6 +319,10 @@ monitoring.settings.ultimate_cron_errors:
   type: monitoring.settings_base
   label: 'Ultimate cron errors sensor settings'
 
+monitoring.settings.database_disk_usage:
+  type: monitoring.settings_base
+  label: 'Monitors how much space the database uses'
+
 monitoring.settings.monitoring_system_memory:
   type: monitoring.settings_base
   label: 'System memory sensor settings'
