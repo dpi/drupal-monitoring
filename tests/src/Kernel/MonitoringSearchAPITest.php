@@ -1,14 +1,11 @@
 <?php
-/**
- * @file
- * Contains \Drupal\Tests\monitoring\Kernel\MonitoringSearchAPITest.
- */
 
 namespace Drupal\Tests\monitoring\Kernel;
 
 use Drupal\entity_test\Entity\EntityTestMulRevChanged;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\search_api\Entity\Index;
+use Drupal\search_api\Entity\Server;
 
 /**
  * Tests for search API sensor.
@@ -32,6 +29,7 @@ class MonitoringSearchAPITest extends MonitoringUnitTestBase {
     'entity_test',
     'text',
     'taxonomy',
+    'search_api_solr',
   );
 
   /**
@@ -117,6 +115,111 @@ class MonitoringSearchAPITest extends MonitoringUnitTestBase {
     // Manually delete the sensor and then the index.
     $sensor->delete();
     $index_existing->delete();
+  }
+
+  /**
+   * Tests the solr disk usage sensor.
+   */
+  public function testSolrDiskUsage() {
+    $sensor_config = SensorConfig::create([
+      'id' => 'solr_disk_usage',
+      'label' => 'Solr disk usage',
+      'plugin_id' => 'solr_disk_usage',
+      'value_label' => 'mb',
+      'caching_time' => 86400,
+      'value_type' => 'number',
+      'thresholds' => [
+        'type' => 'exceeds',
+        'warning' => 20,
+        'critical' => 50,
+      ],
+      'settings' => [
+        'server' => '',
+      ],
+    ]);
+    $sensor_config->save();
+
+    $sensor_result = $this->runSensor('solr_disk_usage');
+    $this->assertTrue($sensor_result->isCritical());
+    $this->assertEquals($sensor_result->getMessage(), 'RuntimeException: Solr server is not configured.');
+
+    $sensor_config = SensorConfig::load('solr_disk_usage');
+    $settings = $sensor_config->getSettings();
+    $settings['server'] = 'search_api_server';
+    $sensor_config->settings = $settings;
+    $sensor_config->save();
+
+    $sensor_result = $this->runSensor('solr_disk_usage');
+    $this->assertTrue($sensor_result->isCritical());
+    $this->assertEquals($sensor_result->getMessage(), "RuntimeException: Solr server doesn't exist.");
+
+    $server = Server::create([
+      'name' => 'Solr server',
+      'status' => TRUE,
+      'id' => 'search_api_server',
+      'backend' => 'search_api_solr',
+      'backend_config' => [
+        'connector' => 'standard',
+        'connector_config' => [
+          'scheme' => 'http',
+          'host' => 'localhost',
+          'port' => '8983',
+          'path' => '/solr',
+          'core' => 'd8',
+        ],
+      ],
+    ]);
+    $server->save();
+
+    $sensor_config->settings['server'] = 'search_api_server';
+    $sensor_config->save();
+
+    \Drupal::state()->set('monitoring.test_solr_index_size', '5 MB');
+    $solr_info = [
+      'server_name' => $server->label(),
+      'host' => $server->getBackend()->getConfiguration()['connector_config']['host'],
+      'core' => $server->getBackend()->getConfiguration()['connector_config']['core'],
+      'total_physical_memory' => 10000000,
+      'free_physical_memory' => 8000000,
+      'total_swap_memory' => 10000000,
+      'free_swap_memory' => 5000000,
+      'indexed_docs' => 100,
+    ];
+
+    \Drupal::state()->set('monitoring.test_solr_info', $solr_info);
+    $sensor_result = $this->runSensor('solr_disk_usage');
+    $this->assertTrue($sensor_result->isOk());
+    $this->assertEquals($sensor_result->getMessage(), "5 MB");
+    $verbose_output = $sensor_result->getVerboseOutput();
+    $plain = \Drupal::getContainer()->get('renderer')->renderPlain($verbose_output);
+    $this->setRawContent($plain);
+    $this->assertText('Solr server: Solr server, host: localhost, core: d8');
+    $this->assertText('Solr server: Solr server, host: localhost, core: d8');
+    $this->assertText('Physical memory (9.54 MB available)');
+    $this->assertText('Swap memory (9.54 MB available)');
+    $this->assertText('1.91 MB (20.00%) used');
+    $this->assertText('4.77 MB (50.00%) used');
+
+    \Drupal::state()->set('monitoring.test_solr_index_size', '21 MB');
+    $sensor_result = $this->runSensor('solr_disk_usage');
+    $this->assertTrue($sensor_result->isWarning());
+    $this->assertEquals($sensor_result->getMessage(), "21 MB");
+
+    \Drupal::state()->set('monitoring.test_solr_index_size', '51 MB');
+    $sensor_result = $this->runSensor('solr_disk_usage');
+    $this->assertTrue($sensor_result->isCritical());
+    $this->assertEquals($sensor_result->getMessage(), "51 MB");
+
+    // Check that we correctly convert GB to MB so we get the right state.
+    \Drupal::state()->set('monitoring.test_solr_index_size', '1 GB');
+    $sensor_result = $this->runSensor('solr_disk_usage');
+    $this->assertTrue($sensor_result->isCritical());
+    $this->assertEquals($sensor_result->getMessage(), "1 GB");
+
+    \Drupal::state()->set('monitoring.test_solr_index_size', '100 bytes');
+    $sensor_result = $this->runSensor('solr_disk_usage');
+    $this->assertTrue($sensor_result->isOk());
+    $this->assertEquals($sensor_result->getMessage(), "100 bytes");
   }
 
   /**

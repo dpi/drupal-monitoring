@@ -323,6 +323,14 @@ monitoring.settings.database_disk_usage:
   type: monitoring.settings_base
   label: 'Monitors how much space the database uses'
 
+monitoring.settings.solr_disk_usage:
+  type: monitoring.settings_base
+  label: 'Solr disk usage'
+  mapping:
+    server:
+      label: 'Server'
+      type: string
+
 monitoring.settings.monitoring_system_memory:
   type: monitoring.settings_base
   label: 'System memory sensor settings'
