@@ -90,7 +90,7 @@ class DatabaseDiskUsagePlugin extends SensorPluginBase implements ExtendedInfoSe
     $database_name = $this->database->getConnectionOptions()['database'];
     $usage_by_table = $this->getDiskUsageByTable($database_name);
 
-    if ($this->sensorConfig->getThresholdValue('warning') && $this->sensorConfig->getThresholdValue('critical') && $disk_usage && $usage_by_table) {
+    if ($this->sensorConfig->getThresholdValue('warning') && $this->sensorConfig->getThresholdValue('critical') && $disk_usage) {
       $output['database_usage'] = [
         '#type' => 'fieldset',
         '#title' => $this->t('Database usage'),
@@ -121,8 +121,9 @@ class DatabaseDiskUsagePlugin extends SensorPluginBase implements ExtendedInfoSe
         '#type' => 'item',
         '#plain_text' => number_format(($disk_usage * 100) / $this->sensorConfig->getThresholdValue('critical'), 2) . '%',
       ];
+    }
 
-
+    if ($usage_by_table) {
       $output['tables_usage'] = [
         '#type' => 'fieldset',
         '#title' => $this->t('Biggest database tables by size.'),
