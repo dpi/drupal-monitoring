@@ -8,6 +8,7 @@ namespace Drupal\monitoring\Tests;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
+use Drupal\dynamic_page_cache\EventSubscriber\DynamicPageCacheSubscriber;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\rest\Tests\RESTTestBase;
 
@@ -90,6 +91,24 @@ class MonitoringServicesTest extends RESTTestBase {
   }
 
   /**
+   * Test sensor dynamic cacheability
+   */
+  public function testSensorCaching() {
+    $this->drupalLogin($this->servicesAccount);
+
+    $sensor_name = 'dblog_event_severity_error';
+    $response_data = $this->doRequest('monitoring-sensor/' . $sensor_name);
+    $this->assertResponse(200);
+    $sensor_config = SensorConfig::load($sensor_name);
+    $this->assertEqual($response_data['label'], $sensor_config->getLabel());
+    $sensor_config->set('label', 'TestLabelForCaching');
+    $sensor_config->save();
+    $response_data = $this->doRequest('monitoring-sensor/' . $sensor_name);
+    $this->assertResponse(200);
+    $this->assertEqual($response_data['label'], 'TestLabelForCaching');
+  }
+
+  /**
    * Test sensor result API calls.
    */
   public function testSensorResult() {
@@ -107,6 +126,8 @@ class MonitoringServicesTest extends RESTTestBase {
     // present.
     $response_data = $this->doRequest('monitoring-sensor-result');
     $this->assertResponse(200);
+    $this->assertEqual('UNCACHEABLE', $this->drupalGetHeader(DynamicPageCacheSubscriber::HEADER),
+      'Render array returned, rendered as HTML response, but uncacheable: Dynamic Page Cache is running, but not caching.');
     $sensor_result = reset($response_data);
     $this->assertTrue(!isset($sensor_result['sensor_info']));
 

@@ -139,7 +139,12 @@ class MonitoringSensorResultResource extends ResourceBase {
         $response = new ResourceResponse($response);
         $response->addCacheableDependency($result[$sensor_name]->getSensorConfig());
         $response->addCacheableDependency($url);
-        $response->addCacheableDependency(CacheableMetadata::createFromRenderArray(['#cache' => ['contexts' => [0 => 'url.query_args']]]));
+        $response->addCacheableDependency(CacheableMetadata::createFromRenderArray([
+          '#cache' => [
+            'contexts' => [0 => 'url.query_args'],
+            'max-age' => 0,
+          ],
+        ]));
         if (!$context->isEmpty()) {
           $response->addCacheableDependency($context->pop());
         }
@@ -176,6 +181,11 @@ class MonitoringSensorResultResource extends ResourceBase {
         }
         $cacheable_metadata = $cacheable_metadata->merge($url);
         $cacheable_metadata = $cacheable_metadata->merge(CacheableMetadata::createFromObject($result->getSensorConfig()));
+        $cacheable_metadata = $cacheable_metadata->merge(CacheableMetadata::createFromRenderArray([
+          '#cache' => [
+            'max-age' => 0,
+          ],
+        ]));
       }
       $response = new ResourceResponse($list);
       $response->addCacheableDependency($cacheable_metadata);
