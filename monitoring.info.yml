@@ -12,7 +12,8 @@ test_dependencies:
  - simplenews
  # Disabled until the elysia_cron integration is available again.
  #- elysia_cron
- - payment
+# Payment is disabled as bcmath is currently not available on Drupal CI.
+# - payment
  - captcha
  - past
  - ultimate_cron
