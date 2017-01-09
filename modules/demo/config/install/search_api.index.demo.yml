@@ -1,28 +1,29 @@
 id: demo
-name: Demo
+name: 'Demo'
 description: 'Demo index'
 read_only: false
 options:
   index_directly: true
   cron_limit: 50
-processors:
-  language:
-    processor_id: language
-    weights: {  }
-    settings: {  }
-fields:
-  search_api_language:
+processor_settings:
+  language: {  }
+field_settings:
+  title:
+    label: Title
+    datasource_id: 'entity:node'
+    property_path: title
     type: string
-datasources:
-  - 'entity:node'
-datasource_configs:
+datasource_settings:
   'entity:node':
-    default: '1'
     bundles:
-      article: article
-      page: '0'
-tracker: default
-tracker_config: {  }
+      default: true
+      selected:
+        - article
+    languages:
+      default: true
+      selected: {  }
+tracker_settings:
+  default: {}
 server: demo
 status: true
 langcode: en
@@ -30,4 +31,5 @@ dependencies:
   config:
     - search_api.server.demo
   module:
+    - search_api
     - node
