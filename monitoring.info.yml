@@ -18,6 +18,7 @@ test_dependencies:
  - past
  - ultimate_cron
  - search_api_solr
+ - redirect:redirect_404
 
 simplytest_dependencies:
  - monitoring_demo
