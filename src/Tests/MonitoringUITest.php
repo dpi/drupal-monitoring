@@ -780,8 +780,8 @@ class MonitoringUITest extends MonitoringTestBase {
 
     $this->drupalGet('admin/reports/monitoring/sensors/core_requirements_system');
     $this->assertNoText('Array');
-    $this->assertText('You can run cron manually.');
-    $this->assertText('To run cron from outside the site, go to');
+    $this->assertText('Run cron');
+    $this->assertText('more information');
 
     $this->drupalGet('admin/config/system/monitoring/sensors/core_requirements_system');
 
