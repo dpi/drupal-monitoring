@@ -237,6 +237,10 @@ monitoring.settings.temporary_files_usages:
   type: monitoring.settings.database_aggregator
   label: 'Temporary files usages sensor settings'
 
+monitoring.settings.redirect_404:
+  type: monitoring.settings.database_aggregator
+  label: 'Redirect 404 sensor settings'
+
 monitoring.settings.user_integrity:
   type: monitoring.settings_base
   label: 'Privileged user integrity'
