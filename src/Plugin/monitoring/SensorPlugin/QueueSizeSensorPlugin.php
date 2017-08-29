@@ -37,10 +37,16 @@ class QueueSizeSensorPlugin extends SensorPluginBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    $queues = array_keys(\Drupal::moduleHandler()->invokeAll('queue_info'));
+
+    $queues = \Drupal::service('plugin.manager.queue_worker')->getDefinitions();
+    $options = [];
+    foreach ($queues as $id => $definition) {
+      $options[$id] = $definition['title'];
+    }
+
     $form['queue'] = array(
       '#type' => 'select',
-      '#options' => $queues,
+      '#options' => $options,
       '#default_value' => $this->sensorConfig->getSetting('queue'),
       '#required' => TRUE,
       '#title' => t('Queues'),

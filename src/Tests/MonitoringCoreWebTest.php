@@ -33,6 +33,33 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->doTestTwigDebugSensor();
     $this->doTestWatchdogAggregatorSensorPlugin();
     $this->doTestPhpNoticesSensor();
+    $this->doTestQueueSizeSensor();
+  }
+
+  /**
+   * Tests creation of sensor through UI.
+   */
+  public function doTestQueueSizeSensor() {
+    $account = $this->drupalCreateUser(['administer monitoring', 'monitoring reports']);
+    $this->drupalLogin($account);
+
+    $this->drupalGet('admin/config/system/monitoring/sensors/add');
+    $this->assertFieldByName('status', TRUE);
+    // Test creation of Node entity aggregator sensor.
+    $this->drupalPostForm('admin/config/system/monitoring/sensors/add', [
+      'label' => 'QueueTest',
+      'id' => 'queue_size_test',
+      'plugin_id' => 'queue_size',
+    ], 'Select sensor');
+
+    $this->assertOption('edit-settings-queue', 'monitoring_test');
+    $this->assertOptionByText('edit-settings-queue', 'Test Worker');
+
+    $edit = [
+      'settings[queue]' => 'monitoring_test',
+    ];
+    $this->drupalPostForm(NULL, $edit, 'Save');
+    $this->assertText('Sensor QueueTest saved.');
   }
 
   /**
