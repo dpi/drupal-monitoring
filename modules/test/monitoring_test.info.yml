@@ -6,4 +6,4 @@ hidden: TRUE
 type: module
 
 dependencies:
- - monitoring
+ - monitoring:monitoring

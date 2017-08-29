@@ -5,12 +5,12 @@ package: Monitoring
 core: 8.x
 
 dependencies:
- - node
- - comment
- - search_api
- - search_api_db
- - monitoring
- - rest
- - basic_auth
- - dblog
- - file
+ - drupal:node
+ - drupal:comment
+ - search_api:search_api
+ - search_api:search_api_db
+ - monitoring:monitoring
+ - drupal:rest
+ - drupal:basic_auth
+ - drupal:dblog
+ - drupal:file
