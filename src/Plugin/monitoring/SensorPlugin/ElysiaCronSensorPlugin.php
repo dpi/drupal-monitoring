@@ -29,7 +29,7 @@ class ElysiaCronSensorPlugin extends SensorPluginBase {
   public function runSensor(SensorResultInterface $result) {
     // The channel name.
     $name = $this->sensorConfig->getSetting('name');
-    $query = db_select('elysia_cron', 'e')->fields('e', array($this->sensorConfig->getSetting('metric')));
+    $query = \Drupal::database()->select('elysia_cron', 'e')->fields('e', array($this->sensorConfig->getSetting('metric')));
     $query->condition('name', $name);
 
     $value = $query->execute()->fetchField();

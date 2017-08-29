@@ -22,7 +22,7 @@ use Drupal\Component\Utility\SafeMarkup;
 function monitoring_elysia_cron_monitoring_sensor_info() {
   $info = array();
 
-  $result = db_select('elysia_cron', 'e')->fields('e', array('name'))->execute()->fetchAll();
+  $result = \Drupal::database()->select('elysia_cron', 'e')->fields('e', array('name'))->execute()->fetchAll();
 
   foreach ($result as $row) {
     // Remove the colon from the name as it breaks munin graphs.

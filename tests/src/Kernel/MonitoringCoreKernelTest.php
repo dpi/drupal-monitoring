@@ -497,7 +497,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     // The testbot reported random fails with an unexpected watchdog record.
     // ALERT: "Missing filter plugin: %filter." with %filter = "filter_null"
     // Thus we drop all ALERT messages first.
-    db_delete('watchdog')
+    \Drupal::database()->delete('watchdog')
       ->condition('severity', RfcLogLevel::ALERT)
       ->execute();
     \Drupal::logger('test')->alert('test message');
@@ -712,7 +712,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     );
     $sensor_config->save();
     // Update the two test_type watchdog entries with a custom location.
-    db_update('watchdog')
+    \Drupal::database()->update('watchdog')
       ->fields(array('location' => 'http://some.url.dev'))
       ->condition('type', 'test_type')
       ->execute();
@@ -726,11 +726,11 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $sensor_config->save();
 
     // Make all system watchdog messages older than the configured time period.
-    db_update('watchdog')
+    \Drupal::database()->update('watchdog')
       ->fields(array('timestamp' => REQUEST_TIME - 20))
       ->condition('type', 'system')
       ->execute();
-    $count_latest = db_query('SELECT COUNT(*) FROM {watchdog} WHERE timestamp > :timestamp', array(':timestamp' => REQUEST_TIME - 10))->fetchField();
+    $count_latest = \Drupal::database()->query('SELECT COUNT(*) FROM {watchdog} WHERE timestamp > :timestamp', array(':timestamp' => REQUEST_TIME - 10))->fetchField();
     $result = $this->runSensor('watchdog_aggregate_test');
     $this->assertEqual($result->getValue(), $count_latest);
 

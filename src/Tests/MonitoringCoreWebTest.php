@@ -428,7 +428,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
    */
   protected function testNonExistingUserFailedLoginSensorPlugin() {
     // Insert a failed login event.
-    db_insert('watchdog')->fields(array(
+    \Drupal::database()->insert('watchdog')->fields(array(
       'type' => 'user',
       'message' => 'Login attempt failed from %ip.',
       'variables' => serialize(['%ip' => '127.0.0.1']),
@@ -564,7 +564,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->drupalCreateNode(array('type' => $type2->id()));
     // One node should not meet the time_interval condition.
     $node = $this->drupalCreateNode(array('type' => $type2->id()));
-    db_update('node_field_data')
+    \Drupal::database()->update('node_field_data')
       ->fields(array('created' => REQUEST_TIME - ($sensor_config->getTimeIntervalValue() + 10)))
       ->condition('nid', $node->id())
       ->execute();
@@ -936,7 +936,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
    *   List of dblog entries.
    */
   protected function loadWatchdog($type = 'monitoring') {
-    return db_query("SELECT * FROM {watchdog} WHERE type = :type", array(':type' => $type))
+    return \Drupal::database()->query("SELECT * FROM {watchdog} WHERE type = :type", array(':type' => $type))
       ->fetchAll();
   }
 
