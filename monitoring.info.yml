@@ -3,7 +3,7 @@ type: module
 description: Monitoring base.
 package: Monitoring
 core: 8.x
-
+configure: monitoring.settings
 dependencies:
  - drupal:views
 
