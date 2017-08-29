@@ -20,7 +20,7 @@ class MonitoringViewDisplayTest extends MonitoringTestBase {
   /**
    * Tests the view display sensor.
    *
-   * @see ViewDisplayAggregatorSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\ViewDisplayAggregatorSensorPlugin
    */
   public function testViewDisplaySensor() {
     $account = $this->drupalCreateUser(array('administer monitoring', 'monitoring reports'));

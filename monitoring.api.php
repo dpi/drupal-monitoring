@@ -15,7 +15,7 @@ use Drupal\monitoring\Result\SensorResultInterface;
  * @param \Drupal\monitoring\Entity\SensorConfig $sensor_config
  *   Sensor config object of a sensor for which links are being altered.
  *
- * @see monitoring_reports_sensors_overview()
+ * @see \Drupal\monitoring\Controller\SensorList::content()
  */
 function hook_monitoring_sensor_links_alter(&$links, \Drupal\monitoring\Entity\SensorConfig $sensor_config) {
 

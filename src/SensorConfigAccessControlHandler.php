@@ -15,7 +15,7 @@ use Drupal\Core\Session\AccountInterface;
 /**
  * Defines the access control handler for sensor config.
  *
- * @see Drupal\monitoring\Entity\SensorConfig
+ * @see \Drupal\monitoring\Entity\SensorConfig
  */
 class SensorConfigAccessControlHandler extends EntityAccessControlHandler {
 

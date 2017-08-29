@@ -26,7 +26,7 @@ interface SensorResultInterface extends SensorResultDataInterface {
    * @param array $variables
    *   Dynamic values to be replaced for placeholders in the message.
    *
-   * @see self::setMessage()
+   * @see \Drupal\monitoring\Result\SensorResultInterface::setMessage()
    */
   public function addStatusMessage($message, array $variables = array());
 

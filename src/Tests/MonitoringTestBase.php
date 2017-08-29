@@ -60,7 +60,7 @@ abstract class MonitoringTestBase extends WebTestBase {
    * @return bool
    *   FALSE if one or more dependencies are missing, TRUE otherwise.
    *
-   * @see uninstallModules()
+   * @see \Drupal\monitoring\Tests\MonitoringTestBase::uninstallModules()
    * @see \Drupal\Core\Extension\ModuleInstallerInterface::install()
    */
   protected function installModules(array $module_list, $enable_dependencies = TRUE) {
@@ -91,7 +91,7 @@ abstract class MonitoringTestBase extends WebTestBase {
    * @return bool
    *   FALSE if one or more dependencies are missing, TRUE otherwise.
    *
-   * @see installModules()
+   * @see \Drupal\monitoring\Tests\MonitoringTestBase::installModules()
    * @see \Drupal\Core\Extension\ModuleInstallerInterface::uninstall()
    */
   protected function uninstallModules(array $module_list, $uninstall_dependents = TRUE) {

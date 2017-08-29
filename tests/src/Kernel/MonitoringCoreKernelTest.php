@@ -73,7 +73,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests cron last run age sensor.
    *
-   * @see CronLastRunAgeSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\CronLastRunAgeSensorPlugin
    */
   public function testCronLastRunAgeSensorPlugin() {
     // Fake cron run 1d+1s ago.
@@ -100,7 +100,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests cron safe threshold (poormanscron) sensor.
    *
-   * @see ConfigValueSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\ConfigValueSensorPlugin
    */
   public function testConfigValueSensorPluginCronSafeThreshold() {
     // Run sensor, all is OK.
@@ -117,7 +117,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests maintenance mode sensor.
    *
-   * @see StateValueSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\StateValueSensorPlugin
    */
   public function testStateValueSensorPluginMaintenanceMode() {
     // Run sensor, all is OK.
@@ -137,7 +137,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests queue size sensors.
    *
-   * @see QueueSizeSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\QueueSizeSensorPlugin
    */
   public function testQueueSizeSensorPlugin() {
 
@@ -218,7 +218,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
    *
    * Logged through watchdog.
    *
-   * @see Dblog404SensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\Dblog404SensorPlugin
    */
   public function testDblog404SensorPlugin() {
     // Fake some not found errors.
@@ -280,7 +280,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
    *
    * Logged through watchdog.
    *
-   * @see ImageMissingStyleSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\ImageMissingStyleSensorPlugin
    */
   public function testImageMissingStyleSensorPlugin() {
     $this->installSchema('file', ['file_usage']);
@@ -411,7 +411,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests the node count per content type sensor.
    *
-   * @see SensorDatabaseAggregator
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\ContentEntityAggregatorSensorPlugin
    */
   public function testDefaultNodeTypeSensors() {
 
@@ -434,7 +434,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     // Run sensor for type1.
     $result = $this->runSensor('node_new_' . $type1->id());
     $this->assertEqual($result->getValue(), 2);
-    // Test for the SensorDatabaseAggregator custom message.
+    // Test for the ContentEntityAggregatorSensorPlugin custom message.
     $this->assertEqual($result->getMessage(), SafeMarkup::format('@count @unit in @time_interval', array(
       '@count' => $result->getValue(),
       '@unit' => strtolower($result->getSensorConfig()->getValueLabel()),
@@ -490,7 +490,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests dblog watchdog sensor.
    *
-   * @see DatabaseAggregatorSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DatabaseAggregatorSensorPlugin
    */
   public function testDatabaseAggregatorSensorPluginDblog() {
     // Create watchdog entry with severity alert.
@@ -511,7 +511,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests failed user logins sensor.
    *
-   * @see UserFailedLoginsSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\UserFailedLoginsSensorPlugin
    */
   public function testUserFailedLoginsSensorPlugin() {
     // Fake some login failed dblog records.
@@ -530,7 +530,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests user logouts through db aggregator sensor.
    *
-   * @see DatabaseAggregatorSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DatabaseAggregatorSensorPlugin
    */
   public function testDatabaseAggregatorSensorPluginUserLogout() {
     // Fake some logout dblog records.
@@ -547,7 +547,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests git sensor.
    *
-   * @see GitDirtyTreeSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\GitDirtyTreeSensorPlugin
    */
   public function testGitDirtyTreeSensorPlugin() {
     // Enable the sensor and set cmd to output something.
@@ -648,7 +648,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests the default theme sensor.
    *
-   * @see ConfigValueSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\ConfigValueSensorPlugin
    */
   public function testConfigValueSensorPluginDefaultTheme() {
     $this->config('system.theme')->set('default', 'bartik')->save();
@@ -664,7 +664,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   /**
    * Tests the database aggregator sensor.
    *
-   * @see DatabaseAggregatorSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DatabaseAggregatorSensorPlugin
    */
   public function testDatabaseAggregator() {
     // Aggregate by watchdog type.

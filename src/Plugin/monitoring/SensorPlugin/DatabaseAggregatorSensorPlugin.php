@@ -132,7 +132,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
    * @return \Drupal\Core\Database\Query\Select
    *   The select query object.
    *
-   * @see getQueryAggregate()
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DatabaseAggregatorSensorPlugin::getAggregateQuery()
    */
   protected function getQuery() {
     /* @var \Drupal\Core\Database\Connection $database */

@@ -93,7 +93,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
   /**
    * Tests successful user logins through watchdog sensor.
    *
-   * @see DatabaseAggregatorSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DatabaseAggregatorSensorPlugin
    */
   protected function doTestWatchdogAggregatorSensorPlugin() {
     // Create and login user with permission to edit sensors and view reports.
@@ -127,7 +127,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
   /**
    * Tests active session count through db aggregator sensor.
    *
-   * @see DatabaseAggregatorSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DatabaseAggregatorSensorPlugin
    */
   protected function doTestDatabaseAggregatorSensorPluginActiveSessions() {
     // Create and login a user to have data in the sessions table.
@@ -228,7 +228,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
   /**
    * Tests the user integrity sensor.
    *
-   * @see UserIntegritySensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\UserIntegritySensorPlugin
    */
   protected function doTestUserIntegritySensorPlugin() {
     $test_user_first = $this->drupalCreateUser(array('administer monitoring'), 'test_user');
@@ -317,7 +317,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
   /**
    * Tests the user integrity sensor.
    *
-   * @see UserIntegritySensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\UserIntegritySensorPlugin
    */
   protected function doTestPhpNoticesSensor() {
     $test_user_first = $this->drupalCreateUser(array(
@@ -394,7 +394,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
   /**
    * Tests the user failed login sensor.
    *
-   * @see UserFailedLoginsSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\UserFailedLoginsSensorPlugin
    */
   protected function testUserFailedLoginSensorPlugin() {
 
@@ -451,7 +451,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
    * We provide a separate test method for the DisappearedSensorsSensorPlugin as we
    * need to install and uninstall additional modules.
    *
-   * @see DisappearedSensorsSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DisappearedSensorsSensorPlugin
    */
   public function testSensorDisappearedSensors() {
     // Install the comment module.
@@ -514,7 +514,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
    *
    * We use separate test method as we need to install/uninstall modules.
    *
-   * @see EnabledModulesSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\EnabledModulesSensorPlugin
    */
   public function testSensorInstalledModulesAPI() {
     // The initial run of the sensor will acknowledge all installed modules as
@@ -552,7 +552,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
   /**
    * Tests the entity aggregator.
    *
-   * @see ContentEntityAggregatorSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\ContentEntityAggregatorSensorPlugin
    */
   public function testEntityAggregator() {
     // Create content types and nodes.
@@ -733,7 +733,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
   /**
    * Tests the page not found errors.
    *
-   * @see Dblog404SensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\Dblog404SensorPlugin
    */
   public function testPageNotFoundErrors() {
     $test_user = $this->drupalCreateUser([

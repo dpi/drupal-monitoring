@@ -6,10 +6,11 @@
  * Default sensors provide sensors for core and contrib modules with
  * monitoring_MODULE_monitoring_sensor_info()
  *
- * The default integration for MODULE is omitted if a module implements
- * hook_monitoring_sensor_info() on its own.
+ * The default integration for MODULE is omitted if that module provides a
+ * SensorPlugin plugin of its own.
  *
- * @see hook_monitoring_sensor_info()
+ * @see \Drupal\monitoring\Annotation\SensorPlugin
+ * @see \Drupal\monitoring\SensorPlugin\SensorPluginInterface
  */
 
 use Drupal\Component\Utility\SafeMarkup;

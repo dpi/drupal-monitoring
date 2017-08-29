@@ -26,8 +26,6 @@ use Drupal\search_api\Entity\Index;
  * Every instance represents a single index.
  *
  * Once all items are processed, the value should be 0.
- *
- * @see search_api_index_status()
  */
 class SearchApiUnindexedSensorPlugin extends SensorPluginBase {
 

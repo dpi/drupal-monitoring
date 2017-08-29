@@ -108,7 +108,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
    * @return \Drupal\Core\Entity\Query\QueryInterface
    *   The entity query object.
    *
-   * @see getEntityQueryAggregate()
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\ContentEntityAggregatorSensorPlugin::getEntityQueryAggregate()
    */
   protected function getEntityQuery() {
     $entity_info = $this->entityManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);

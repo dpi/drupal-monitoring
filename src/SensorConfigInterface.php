@@ -75,7 +75,7 @@ interface SensorConfigInterface extends ConfigEntityInterface {
    * @return string|null
    *   Sensor value type.
    *
-   * @see monitoring_value_types().
+   * @see \monitoring_value_types().
    */
   public function getValueType();
 

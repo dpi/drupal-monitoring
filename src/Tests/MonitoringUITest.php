@@ -855,7 +855,7 @@ class MonitoringUITest extends MonitoringTestBase {
   /**
    * Tests the UI/settings of the installed modules sensor.
    *
-   * @see InstalledModulesSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\EnabledModulesSensorPlugin
    */
   public function testSensorInstalledModulesUI() {
     $account = $this->drupalCreateUser(array('administer monitoring'));
@@ -928,7 +928,7 @@ class MonitoringUITest extends MonitoringTestBase {
    * We provide a separate test method for the DisappearedSensorsSensorPlugin as we
    * need to install and uninstall additional modules.
    *
-   * @see DisappearedSensorsSensorPlugin
+   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DisappearedSensorsSensorPlugin
    */
   public function testSensorDisappearedSensorsUI() {
     $account = $this->drupalCreateUser(array('administer monitoring'));

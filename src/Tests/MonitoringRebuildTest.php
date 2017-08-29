@@ -21,7 +21,7 @@ class MonitoringRebuildTest extends MonitoringTestBase {
   /**
    * Tests creating non-addable sensors.
    *
-   * @see Drupal\monitoring\Controller\RebuildSensorList::rebuild()
+   * @see \Drupal\monitoring\Controller\RebuildSensorList::rebuild()
    */
   public function testRebuildNonAddable() {
     // Create and login user with permission to view monitoring reports.
