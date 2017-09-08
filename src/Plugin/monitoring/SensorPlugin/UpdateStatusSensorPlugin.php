@@ -8,6 +8,8 @@ namespace Drupal\monitoring\Plugin\monitoring\SensorPlugin;
 
 use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\monitoring\SensorPlugin\SensorPluginBase;
+use Drupal\update\UpdateFetcherInterface;
+use Drupal\update\UpdateManagerInterface;
 
 /**
  * Monitors for available updates of Drupal core and installed contrib modules.
@@ -85,37 +87,19 @@ class UpdateStatusSensorPlugin extends SensorPluginBase {
   protected function checkContrib(SensorResultInterface $result, $project_data) {
 
     unset($project_data['drupal']);
-    $uptodate = TRUE;
+
+    $updates = [];
 
     foreach ($project_data as $info) {
-      // Skip in case the status is current or unknown.
-      if ($info['status'] == UPDATE_CURRENT || $info['status'] == UPDATE_UNKNOWN) {
-        continue;
+      $status_text = $this->getStatusText($info['status']);
+      if (!isset($updates[$status_text])) {
+        $updates[$status_text] = 0;
       }
-
-      $uptodate = FALSE;
-
-      $status = $this->getStatusText($info['status']);
-
-      if ($status == 'unknown') {
-        $result->addStatusMessage('Module @module (@current) - no releases found', array(
-          '@module' => $info['info']['name'],
-          '@current' => isset($info['existing_version']) ? $info['existing_version'] : NULL,
-        ));
-      }
-      else {
-        $result->addStatusMessage('Module @module (@current) - @status - recommended @recommended - latest @latest', array(
-          '@module' => $info['info']['name'],
-          '@status' => $status,
-          '@current' => isset($info['existing_version']) ? $info['existing_version'] : NULL,
-          '@recommended' => isset($info['recommended']) ? $info['recommended'] : NULL,
-          '@latest' => isset($info['latest_version']) ? $info['latest_version'] : NULL,
-        ));
-      }
+      $updates[$status_text]++;
     }
 
-    if ($uptodate) {
-      $result->addStatusMessage('All modules up to date');
+    foreach ($updates as $status_text => $count) {
+      $result->addStatusMessage($count . ' ' . $status_text);
     }
   }
 
@@ -123,37 +107,37 @@ class UpdateStatusSensorPlugin extends SensorPluginBase {
    * Gets status text.
    *
    * @param int $status
-   *   One of UPDATE_* constants.
+   *   One of UpdateManagerInterface::* constants.
    *
    * @return string
    *   Status text.
    */
   protected function getStatusText($status) {
     switch ($status) {
-      case UPDATE_NOT_SECURE:
+      case UpdateManagerInterface::NOT_SECURE:
         return 'NOT SECURE';
         break;
 
-      case UPDATE_CURRENT:
+      case UpdateManagerInterface::CURRENT:
         return 'current';
         break;
 
-      case UPDATE_REVOKED:
+      case UpdateManagerInterface::REVOKED:
         return 'version revoked';
         break;
 
-      case UPDATE_NOT_SUPPORTED:
+      case UpdateManagerInterface::NOT_SUPPORTED:
         return 'not supported';
         break;
 
-      case UPDATE_NOT_CURRENT:
+      case UpdateManagerInterface::NOT_CURRENT:
         return 'update available';
         break;
 
-      case UPDATE_UNKNOWN:
-      case UPDATE_NOT_CHECKED:
-      case UPDATE_NOT_FETCHED:
-      case UPDATE_FETCH_PENDING:
+      case UpdateFetcherInterface::UNKNOWN:
+      case UpdateFetcherInterface::NOT_CHECKED:
+      case UpdateFetcherInterface::NOT_FETCHED:
+      case UpdateFetcherInterface::FETCH_PENDING:
         return 'unknown';
         break;
     }
