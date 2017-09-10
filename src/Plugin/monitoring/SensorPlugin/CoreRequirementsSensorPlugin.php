@@ -86,27 +86,34 @@ class CoreRequirementsSensorPlugin extends SensorPluginBase implements ExtendedI
       $row['severity'] = $severity;
 
       // Map column message with title and description.
-      $title = [];
+      $titles = [];
       if (isset($value['title'])) {
-        $title[] = $value['title'];
+        $titles[] = $value['title'];
       }
       if (isset($value['value'])) {
-        $title[] = $value['value'];
+        $titles[] = $value['value'];
       }
       $description = '';
       if (isset($value['description'])) {
         if (is_array($value['description'])) {
           // A few requirements such as cron attach a render array.
-          $description = \Drupal::service('renderer')
-            ->renderPlain($value['description']);
+          $description = \Drupal::service('renderer')->renderPlain($value['description']);
         }
         else {
           $description = $value['description'];
         }
       }
+
+      $titles = array_map(function ($title) {
+        if (is_array($title)) {
+          $title = \Drupal::service('renderer')->renderPlain($title);
+        }
+        return $title;
+      }, $titles);
+
       $message = array(
         '#type' => 'item',
-        '#title' => implode(' ', $title),
+        '#title' => implode(' ', $titles),
         '#markup' => $description,
       );
       $row['message'] = \Drupal::service('renderer')->renderPlain($message);

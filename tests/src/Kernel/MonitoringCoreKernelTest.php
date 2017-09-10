@@ -406,6 +406,26 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $this->assertText('requirement that should be excluded from monitoring by the sensor');
     $this->assertText('requirement2');
     $this->assertText('requirement2 description');
+
+    // Add error state.
+    $requirements = [
+      'requirement4' => [
+        'title' => ['#markup' => 'requirement 4'],
+        'description' => ['#markup' => 'Description as a render array'],
+        'severity' => REQUIREMENT_WARNING,
+      ],
+    ];
+    \Drupal::state()->set('monitoring_test.requirements', $requirements);
+
+    // Check verbose message. Make sure that the render array is converted to
+    // a string.
+    $result = $this->runSensor('core_requirements_monitoring_test');
+    $this->assertTrue($result->isWarning());
+    $this->assertEquals('requirement 4, Description as a render array', $result->getMessage());
+    $verbose_output = $result->getVerboseOutput();
+    $this->setRawContent(\Drupal::service('renderer')->renderPlain($verbose_output));
+    $this->assertText('requirement 4');
+    $this->assertText('Description as a render array');
   }
 
   /**

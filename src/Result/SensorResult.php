@@ -256,9 +256,16 @@ class SensorResult implements SensorResultInterface {
         $messages[] = $threshold_message;
       }
 
+      $renderer = \Drupal::service('renderer');
+
       // Append all status messages which were added by the sensor.
       foreach ($this->statusMessages as $msg) {
-        $messages[] = SafeMarkup::format($msg['message'], array_merge($default_variables, $msg['variables']));
+        if (is_array($msg['message'])) {
+          $messages[] = SafeMarkup::format($renderer->renderPlain($msg['message']), array_merge($default_variables, $msg['variables']));
+        }
+        else {
+          $messages[] = SafeMarkup::format($msg['message'], array_merge($default_variables, $msg['variables']));
+        }
       }
 
       $message = strip_tags(implode(', ', $messages));
