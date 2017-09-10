@@ -72,38 +72,21 @@ class SensorDrupalUpdate extends Sensor {
   protected function checkContrib(SensorResultInterface $result, $project_data) {
 
     unset($project_data['drupal']);
-    $uptodate = TRUE;
+
+    $updates = array();
 
     foreach ($project_data as $info) {
-      // Skip in case the status is current or unknown.
-      if ($info['status'] == UPDATE_CURRENT || $info['status'] == UPDATE_UNKNOWN) {
-        continue;
+      $status_text = $this->getStatusText($info['status']);
+      if (!isset($updates[$status_text])) {
+        $updates[$status_text] = 0;
       }
-
-      $uptodate = FALSE;
-
-      $status = $this->getStatusText($info['status']);
-
-      if ($status == 'unknown') {
-        $result->addStatusMessage('Module @module (@current) - no releases found', array(
-          '@module' => $info['info']['name'],
-          '@current' => isset($info['existing_version']) ? $info['existing_version'] : NULL,
-        ));
-      }
-      else {
-        $result->addStatusMessage('Module @module (@current) - @status - recommended @recommended - latest @latest', array(
-          '@module' => $info['info']['name'],
-          '@status' => $status,
-          '@current' => isset($info['existing_version']) ? $info['existing_version'] : NULL,
-          '@recommended' => isset($info['recommended']) ? $info['recommended'] : NULL,
-          '@latest' => isset($info['latest_version']) ? $info['latest_version'] : NULL,
-        ));
-      }
+      $updates[$status_text]++;
     }
 
-    if ($uptodate) {
-      $result->addStatusMessage('All modules up to date');
+    foreach ($updates as $status_text => $count) {
+      $result->addStatusMessage($count . ' ' . $status_text);
     }
+
   }
 
   /**
