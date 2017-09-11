@@ -7,7 +7,6 @@
 
 namespace Drupal\monitoring\Plugin\rest\resource;
 
-use Drupal\Core\Access\AccessManagerInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Render\RendererInterface;
@@ -20,7 +19,6 @@ use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Tests\DependencyInjection\RendererService;
 use Symfony\Component\Routing\Route;
 use Psr\Log\LoggerInterface;
 
@@ -104,7 +102,7 @@ class MonitoringSensorResultResource extends ResourceBase {
   /**
    * Responds to sensor INFO GET requests.
    *
-   * @param string $sensor_name
+   * @param string $id
    *   (optional) The sensor name, returns a list of all sensors when empty.
    *
    * @return \Drupal\rest\ResourceResponse
@@ -112,14 +110,14 @@ class MonitoringSensorResultResource extends ResourceBase {
    *
    * @throws \Symfony\Component\HttpKernel\Exception\HttpException
    */
-  public function get($sensor_name = NULL) {
+  public function get($id = NULL) {
     $request = \Drupal::request();
 
     $format = $request->getRequestFormat('ĵson');
 
-    if ($sensor_name) {
+    if ($id) {
       try {
-        $sensor_config[$sensor_name] = $this->sensorManager->getSensorConfigByName($sensor_name);
+        $sensor_config[$id] = $this->sensorManager->getSensorConfigByName($id);
 
         // Some sensors might render or do things that we can not properly
         // collect cacheability metadata for. So, run it in our own render
@@ -130,14 +128,14 @@ class MonitoringSensorResultResource extends ResourceBase {
         $result = $this->renderer->executeInRenderContext($context, function() use ($sensor_runner, $sensor_config) {
           return $sensor_runner->runSensors($sensor_config);
         });
-        $response = $result[$sensor_name]->toArray();
-        $url = Url::fromRoute('rest.monitoring-sensor-result.GET.' . $format, ['id' => $sensor_name, '_format' => $format])->setAbsolute()->toString(TRUE);
+        $response = $result[$id]->toArray();
+        $url = Url::fromRoute('rest.monitoring-sensor-result.GET.' . $format, ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
         $response['uri'] = $url->getGeneratedUrl();
         if ($request->get('expand') == 'sensor') {
-          $response['sensor'] = $result[$sensor_name]->getSensorConfig()->toArray();
+          $response['sensor'] = $result[$id]->getSensorConfig()->toArray();
         }
         $response = new ResourceResponse($response);
-        $response->addCacheableDependency($result[$sensor_name]->getSensorConfig());
+        $response->addCacheableDependency($result[$id]->getSensorConfig());
         $response->addCacheableDependency($url);
         $response->addCacheableDependency(CacheableMetadata::createFromRenderArray([
           '#cache' => [
@@ -172,12 +170,12 @@ class MonitoringSensorResultResource extends ResourceBase {
         return $sensor_runner->runSensors();
       });
 
-      foreach ($results as $sensor_name => $result) {
-        $list[$sensor_name] = $result->toArray();
-        $url = Url::fromRoute('rest.monitoring-sensor-result.GET.' . $format, ['id' => $sensor_name, '_format' => $format])->setAbsolute()->toString(TRUE);
-        $list[$sensor_name]['uri'] = $url->getGeneratedUrl();
+      foreach ($results as $id => $result) {
+        $list[$id] = $result->toArray();
+        $url = Url::fromRoute('rest.monitoring-sensor-result.GET.' . $format, ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
+        $list[$id]['uri'] = $url->getGeneratedUrl();
         if ($request->get('expand') == 'sensor') {
-          $list[$sensor_name]['sensor'] = $result->getSensorConfig()->toArray();
+          $list[$id]['sensor'] = $result->getSensorConfig()->toArray();
         }
         $cacheable_metadata = $cacheable_metadata->merge($url);
         $cacheable_metadata = $cacheable_metadata->merge(CacheableMetadata::createFromObject($result->getSensorConfig()));

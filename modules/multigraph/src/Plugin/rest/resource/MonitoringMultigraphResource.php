@@ -53,7 +53,7 @@ class MonitoringMultigraphResource extends ResourceBase {
   /**
    * Responds to multigraph GET requests.
    *
-   * @param string $multigraph_name
+   * @param string $id
    *   (optional) The multigraph name, returns a list of all multigraphs when
    *   empty.
    *
@@ -62,21 +62,21 @@ class MonitoringMultigraphResource extends ResourceBase {
    *
    * @throws \Symfony\Component\HttpKernel\Exception\HttpException
    */
-  public function get($multigraph_name = NULL) {
+  public function get($id = NULL) {
 
     $request = \Drupal::request();
     $format = $request->getRequestFormat('ĵson');
 
-    if ($multigraph_name) {
+    if ($id) {
       /** @var \Drupal\monitoring_multigraph\Entity\Multigraph $multigraph */
       $multigraph = \Drupal::entityManager()
         ->getStorage('monitoring_multigraph')
-        ->load($multigraph_name);
+        ->load($id);
       if ($multigraph == NULL) {
-        throw new NotFoundHttpException('No multigraph with name "' . $multigraph_name . '"');
+        throw new NotFoundHttpException('No multigraph with name "' . $id . '"');
       }
       $response = $multigraph->getDefinition();
-      $url = Url::fromRoute('rest.monitoring-multigraph.GET.' . $format , ['id' => $multigraph_name, '_format' => $format])->setAbsolute()->toString(TRUE);
+      $url = Url::fromRoute('rest.monitoring-multigraph.GET.' . $format , ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
       $response['uri'] = $url->getGeneratedUrl();
       $response = new ResourceResponse($response);
       $response->addCacheableDependency($multigraph);

@@ -7,7 +7,6 @@
 
 namespace Drupal\monitoring\Plugin\rest\resource;
 
-use Drupal\Core\Access\AccessManagerInterface;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Url;
 use Drupal\monitoring\Sensor\NonExistingSensorException;
@@ -83,7 +82,7 @@ class MonitoringSensorConfigResource extends ResourceBase {
   /**
    * Responds to sensor INFO GET requests.
    *
-   * @param string $sensor_name
+   * @param string $id
    *   (optional) The sensor name, returns a list of all sensors when empty.
    *
    * @return \Drupal\rest\ResourceResponse
@@ -91,17 +90,17 @@ class MonitoringSensorConfigResource extends ResourceBase {
    *
    * @throws \Symfony\Component\HttpKernel\Exception\HttpException
    */
-  public function get($sensor_name = NULL) {
+  public function get($id = NULL) {
     $format = \Drupal::request()->getRequestFormat('ĵson');
-    if ($sensor_name) {
+    if ($id) {
       try {
-        $sensor_config = $this->sensorManager->getSensorConfigByName($sensor_name);
+        $sensor_config = $this->sensorManager->getSensorConfigByName($id);
       }
       catch (NonExistingSensorException $e) {
         throw new NotFoundHttpException($e->getMessage(), $e);
       }
       $response = $sensor_config->getDefinition();
-      $url = Url::fromRoute('rest.monitoring-sensor.GET.' . $format, ['id' => $sensor_name, '_format' => $format])->setAbsolute()->toString(TRUE);
+      $url = Url::fromRoute('rest.monitoring-sensor.GET.' . $format, ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
       $response['uri'] = $url->getGeneratedUrl();
       $response = new ResourceResponse($response);
       $response->addCacheableDependency($url);
@@ -111,10 +110,10 @@ class MonitoringSensorConfigResource extends ResourceBase {
 
     $list = array();
     $cacheable_metadata = new CacheableMetadata();
-    foreach ($this->sensorManager->getAllSensorConfig() as $sensor_name => $sensor_config) {
-      $list[$sensor_name] = $sensor_config->getDefinition();
-      $url = Url::fromRoute('rest.monitoring-sensor.GET.' . $format, ['id' => $sensor_name, '_format' => $format])->setAbsolute()->toString(TRUE);
-      $list[$sensor_name]['uri'] = $url->getGeneratedUrl();
+    foreach ($this->sensorManager->getAllSensorConfig() as $id => $sensor_config) {
+      $list[$id] = $sensor_config->getDefinition();
+      $url = Url::fromRoute('rest.monitoring-sensor.GET.' . $format, ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
+      $list[$id]['uri'] = $url->getGeneratedUrl();
 
       $cacheable_metadata = $cacheable_metadata->merge($url);
       $cacheable_metadata = $cacheable_metadata->merge(CacheableMetadata::createFromObject($sensor_config));
