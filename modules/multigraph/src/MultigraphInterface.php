@@ -59,4 +59,13 @@ interface MultigraphInterface extends ConfigEntityInterface {
    *   Sensor description.
    */
   public function getDescription();
+
+  /**
+   * Compiles sensor values to an associative array.
+   *
+   * @return array
+   *   Sensor config associative array.
+   */
+  public function getDefinition();
+
 }

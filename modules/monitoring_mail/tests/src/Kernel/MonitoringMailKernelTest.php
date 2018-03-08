@@ -1,10 +1,11 @@
 <?php
 
-namespace Drupal\Tests\monitoring\Kernel;
+namespace Drupal\Tests\monitoring_mail\Kernel;
 
 use Drupal\Core\Test\AssertMailTrait;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring\Result\SensorResultInterface;
+use Drupal\Tests\monitoring\Kernel\MonitoringUnitTestBase;
 
 /**
  * Kernel tests for the mail pieces of monitoring.
@@ -37,6 +38,10 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
       'system',
       'monitoring_mail',
     ]);
+
+    $this->config('system.site')
+      ->set('name', 'Example')
+      ->save();
 
     \Drupal::moduleHandler()->loadAllIncludes('install');
     monitoring_install();
@@ -81,7 +86,7 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
     $this->assertContains('test_sensor_falls', $mails[0]['headers']['Message-ID']);
     $this->assertContains(\Drupal::request()->getHost(), $mails[0]['headers']['Message-ID']);
     // Check the 'mail header From' value.
-    $this->assertEquals('MONITORING Drupal <site_mail@example.com>', $mails[0]['headers']['From']);
+    $this->assertEquals('MONITORING Example <site_mail@example.com>', $mails[0]['headers']['From']);
 
     // Run the same sensor again and make sure no additional mail is sent,
     // because its status has not been changed.

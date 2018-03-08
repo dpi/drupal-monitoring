@@ -295,8 +295,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $usage->add($file, 'monitoring_test', 'node', 123456789);
     for ($i = 0; $i <= 5; $i++) {
       // We use the logger.dblog service to be able to set the referer.
-      \Drupal::service('logger.dblog')->log(LOG_NOTICE,
-        'Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.', [
+      \Drupal::service('logger.dblog')->notice('Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.', [
           '%source_image_path' => $file->getFileUri(),
           '%derivative_path' => 'hash://styles/preview/1234.jpeg',
           'request_uri' => '',
@@ -305,25 +304,26 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
           'link' => '',
           'referer' => 'http://example.com/node/123456789',
           'ip' => '127.0.0.1',
-          'timestamp' => REQUEST_TIME,
+          'timestamp' => \Drupal::time()->getRequestTime() - 10,
         ]);
     }
     \Drupal::logger('image')->notice('Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.',
       array(
         '%source_image_path' => 'public://portrait-pictures/bluemouse.jpeg',
         '%derivative_path' => 'hash://styles/preview/5678.jpeg',
+        'timestamp' => \Drupal::time()->getRequestTime(),
       ));
 
     // Run sensor and test the output.
     $result = $this->runSensor('dblog_image_missing_style');
-    $this->assertEqual(6, $result->getValue());
+    $this->assertEquals(6, $result->getValue());
     $this->assertTrue(strpos($result->getMessage(), $file->getFileUri()) !== FALSE);
     $this->assertTrue($result->isWarning());
     $verbose_output = $result->getVerboseOutput();
     $this->setRawContent(\Drupal::service('renderer')->renderPlain($verbose_output));
     $xpath = $this->xpath('//*[@id="unaggregated_result"]/div/table/tbody');
-    $this->assertEqual($xpath[0]->tr[0]->td[2], 'public://portrait-pictures/bluemouse.jpeg');
-    $this->assertEqual($xpath[0]->tr[6]->td[1], 'http://example.com/node/123456789');
+    $this->assertEquals('public://portrait-pictures/bluemouse.jpeg', (string) $xpath[0]->tr[0]->td[2]);
+    $this->assertEquals('http://example.com/node/123456789', (string) $xpath[0]->tr[6]->td[1]);
     $this->assertLink('7');
   }
 

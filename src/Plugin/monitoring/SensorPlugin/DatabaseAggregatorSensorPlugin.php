@@ -416,7 +416,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
     );
 
     // Fill the conditions table with keys and values for each condition.
-    $conditions = $this->sensorConfig->getSetting('conditions');
+    $conditions = (array) $this->sensorConfig->getSetting('conditions');
 
     if (!$form_state->has('conditions_rows')) {
       $form_state->set('conditions_rows', count($conditions) + 1);
@@ -492,7 +492,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
     );
 
     // Fill the fields table with verbose fields to filter the output.
-    $fields = $this->sensorConfig->getSetting('verbose_fields');
+    $fields = (array) $this->sensorConfig->getSetting('verbose_fields');
 
     if (!$form_state->has('fields_rows')) {
       $form_state->set('fields_rows', count($fields) + 1);

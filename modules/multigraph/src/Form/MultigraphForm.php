@@ -9,7 +9,6 @@ namespace Drupal\monitoring_multigraph\Form;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\monitoring\Entity\SensorConfig;
 
 /**
  * Multigraph settings form controller.
@@ -33,7 +32,7 @@ class MultigraphForm extends EntityForm {
     $sensor_ids = array_diff($sensor_ids, array_keys($multigraph->getSensorsRaw()));
     ksort($sensor_ids);
     /** @var \Drupal\monitoring\Entity\SensorConfig[] $sensors */
-    $sensors = \Drupal::entityManager()
+    $sensors = $this->entityTypeManager
       ->getStorage('monitoring_sensor_config')
       ->loadMultiple($sensor_ids);
     uasort($sensors, "\Drupal\monitoring\Entity\SensorConfig::sort");
@@ -213,7 +212,7 @@ class MultigraphForm extends EntityForm {
 
     // Add any selected sensor to entity.
     if ($sensor_name = $form_state->getValue(array('sensor_add_select'))) {
-      $sensor_label = \Drupal::entityManager()->getStorage('monitoring_sensor_config')->load($sensor_name)->getLabel();
+      $sensor_label = $this->entityTypeManager->getStorage('monitoring_sensor_config')->load($sensor_name)->getLabel();
       $multigraph->addSensor($sensor_name);
       drupal_set_message($this->t('Sensor "@sensor_label" added. You have unsaved changes.', array('@sensor_label' => $sensor_label)), 'warning');
     }
@@ -239,7 +238,7 @@ class MultigraphForm extends EntityForm {
     // Remove sensor as indicated by triggering_element.
     $button_name = $form_state->getTriggeringElement()['#name'];
     $sensor_name = substr($button_name, strlen('remove_'));
-    $sensor_label = \Drupal::entityManager()->getStorage('monitoring_sensor_config')->load($sensor_name)->getLabel();
+    $sensor_label = $this->entityTypeManager->getStorage('monitoring_sensor_config')->load($sensor_name)->getLabel();
     $multigraph->removeSensor($sensor_name);
     drupal_set_message($this->t('Sensor "@sensor_label" removed.  You have unsaved changes.', array('@sensor_label' => $sensor_label)), 'warning');
   }
@@ -252,4 +251,17 @@ class MultigraphForm extends EntityForm {
     $form_state->setRedirect('entity.monitoring_multigraph.list');
     drupal_set_message($this->t('Multigraph settings saved.'));
   }
+
+  /**
+   * @inheritDoc
+   */
+  protected function copyFormValuesToEntity(EntityInterface $entity, array $form, FormStateInterface $form_state) {
+    // Unset an empty sensors key or the sensors array is overwritten with an
+    // empty string.
+    if (!$form_state->getValue('sensors')) {
+      $form_state->unsetValue('sensors');
+    }
+    parent::copyFormValuesToEntity($entity, $form, $form_state);
+  }
+
 }

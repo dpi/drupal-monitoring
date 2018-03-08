@@ -136,7 +136,6 @@ class Multigraph extends ConfigEntityBase implements MultigraphInterface {
    */
   public function addSensor($name, $label = NULL) {
     $this->sensors[$name] = array(
-      'name' => $name,
       'label' => $label,
       'weight' => $this->sensors ? 1 + max(array_map(
         function ($mapping) {return $mapping['weight'];},
