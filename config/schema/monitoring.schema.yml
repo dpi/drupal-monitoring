@@ -176,6 +176,14 @@ monitoring.settings.queue_size:
       type: string
       label: Name of the queue
 
+monitoring.settings.update_status:
+  type: monitoring.settings_base
+  label: 'Update status sensor settings'
+  mapping:
+    type:
+      type: string
+      label: Type of updates to check
+
 monitoring.settings.core_requirements:
   type: monitoring.settings_base
   label: 'Core requirements sensor settings'

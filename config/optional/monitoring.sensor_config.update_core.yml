@@ -6,7 +6,7 @@ category: 'Update'
 plugin_id: update_status
 value_type : 'number'
 value_label: 'Outdated modules'
-caching_time: '86400'
+caching_time: 86400
 settings:
   type: 'core'
 dependencies:

@@ -78,23 +78,23 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
   public function testCronLastRunAgeSensorPlugin() {
     // Fake cron run 1d+1s ago.
     $time_shift = (60 * 60 * 24 + 1);
-    \Drupal::state()->set('system.cron_last', REQUEST_TIME - $time_shift);
+    \Drupal::state()->set('system.cron_last', \Drupal::time()->getRequestTime() - $time_shift);
     $result = $this->runSensor('core_cron_last_run_age');
     $this->assertTrue($result->isWarning());
-    $this->assertEqual($result->getValue(), $time_shift);
+    $this->assertEquals($time_shift, $result->getValue());
 
     // Fake cron run from 3d+1s ago.
     $time_shift = (60 * 60 * 24 * 3 + 1);
-    \Drupal::state()->set('system.cron_last', REQUEST_TIME - $time_shift);
+    \Drupal::state()->set('system.cron_last', \Drupal::time()->getRequestTime() - $time_shift);
     $result = $this->runSensor('core_cron_last_run_age');
     $this->assertTrue($result->isCritical());
-    $this->assertEqual($result->getValue(), $time_shift);
+    $this->assertEquals($time_shift, $result->getValue());
 
     // Run cron and check sensor.
     \Drupal::service('cron')->run();
     $result = $this->runSensor('core_cron_last_run_age');
     $this->assertTrue($result->isOk());
-    $this->assertEqual($result->getValue(), 0);
+    $this->assertEquals(0, $result->getValue());
   }
 
   /**

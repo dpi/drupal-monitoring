@@ -6,7 +6,7 @@ plugin_id: update_status
 value_type : 'number'
 value_label: 'Outdated modules'
 status: true
-caching_time: '86400'
+caching_time: 86400
 settings:
   type: 'contrib'
 dependencies:

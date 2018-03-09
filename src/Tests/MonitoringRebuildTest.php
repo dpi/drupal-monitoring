@@ -16,7 +16,7 @@ class MonitoringRebuildTest extends MonitoringTestBase {
    *
    * @var array
    */
-  public static $modules = array('node', 'ultimate_cron');
+  public static $modules = array('node', 'ultimate_cron', 'update');
 
   /**
    * Tests creating non-addable sensors.
@@ -34,6 +34,7 @@ class MonitoringRebuildTest extends MonitoringTestBase {
     // Delete sensors from install and optional directory.
     SensorConfig::load('twig_debug_mode')->delete();
     SensorConfig::load('ultimate_cron_errors')->delete();
+    SensorConfig::load('update_core')->delete();
 
     // Rebuild and make sure they are created again.
     $this->drupalGet('/admin/config/system/monitoring/sensors');
@@ -42,6 +43,7 @@ class MonitoringRebuildTest extends MonitoringTestBase {
     $this->assertText('The sensor Twig debug mode has been created.');
     $this->assertNotNull(SensorConfig::load('twig_debug_mode'));
     $this->assertNotNull(SensorConfig::load('ultimate_cron_errors'));
+    $this->assertNotNull(SensorConfig::load('update_core'));
   }
 
 }
