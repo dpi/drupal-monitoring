@@ -107,6 +107,12 @@ function monitoring_drush_command() {
     'drupal dependencies' => array('monitoring'),
   );
 
+  $items['monitoring-rebuild'] = [
+    'callback' => 'monitoring_drush_rebuild',
+    'description' => 'Rebuild the list of sensors',
+    'drupal dependencies' => ['monitoring'],
+  ];
+
   return $items;
 }
 
@@ -452,4 +458,11 @@ function monitoring_drush_disable($sensor_name) {
   catch (NonExistingSensorException $e) {
     drush_set_error('MONITORING_SENSOR_INVALID_NAME', dt('Sensor "@name" does not exist.', array('@name' => $sensor_name)));
   }
+}
+
+/**
+ * Drush callback to rebuild the sensor list.
+ */
+function monitoring_drush_rebuild() {
+  \Drupal::service('monitoring.sensor_manager')->rebuildSensors();
 }

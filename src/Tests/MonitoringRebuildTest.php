@@ -16,7 +16,7 @@ class MonitoringRebuildTest extends MonitoringTestBase {
    *
    * @var array
    */
-  public static $modules = array('node', 'ultimate_cron', 'update');
+  public static $modules = array('node', 'ultimate_cron', 'update', 'monitoring_test');
 
   /**
    * Tests creating non-addable sensors.
@@ -35,6 +35,17 @@ class MonitoringRebuildTest extends MonitoringTestBase {
     SensorConfig::load('twig_debug_mode')->delete();
     SensorConfig::load('ultimate_cron_errors')->delete();
     SensorConfig::load('update_core')->delete();
+    $sensor = SensorConfig::load('core_requirements_monitoring_test');
+    $this->assertNotNull($sensor);
+
+    $result = $this->runSensor('core_requirements_monitoring_test');
+    $this->assertTrue($result->isOk());
+
+    $result = $this->runSensor('monitoring_disappeared_sensors');
+    $this->assertTrue($result->isOk());
+
+    // Disable the requirements hook.
+    \Drupal::state()->set('monitoring_test_requirements_enabled', FALSE);
 
     // Rebuild and make sure they are created again.
     $this->drupalGet('/admin/config/system/monitoring/sensors');
@@ -44,6 +55,11 @@ class MonitoringRebuildTest extends MonitoringTestBase {
     $this->assertNotNull(SensorConfig::load('twig_debug_mode'));
     $this->assertNotNull(SensorConfig::load('ultimate_cron_errors'));
     $this->assertNotNull(SensorConfig::load('update_core'));
+
+    // Make sure the requirements sensor was removed
+    $this->assertNull(SensorConfig::load('core_requirements_monitoring_test'));
+    $result = $this->runSensor('monitoring_disappeared_sensors');
+    $this->assertTrue($result->isOk());
   }
 
 }

@@ -8,11 +8,13 @@ namespace Drupal\monitoring\Sensor;
 
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\FileStorage;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\monitoring\Entity\SensorConfig;
-use Drupal\monitoring\SensorPlugin\SensorPluginInterface;
 
 /**
  * Manages sensor definitions and settings.
@@ -26,6 +28,8 @@ use Drupal\monitoring\SensorPlugin\SensorPluginInterface;
  */
 class SensorManager extends DefaultPluginManager {
 
+  use StringTranslationTrait;
+
   /**
    * List of sensor definitions.
    *
@@ -34,14 +38,18 @@ class SensorManager extends DefaultPluginManager {
   protected $sensor_config;
 
   /**
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
-
-  /**
+   * The config factory.
+   *
    * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $config;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
 
   /**
    * Constructs a sensor manager.
@@ -54,11 +62,12 @@ class SensorManager extends DefaultPluginManager {
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler to invoke the alter hook with.
    */
-  function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config) {
+  function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct('Plugin/monitoring/SensorPlugin', $namespaces, $module_handler, '\Drupal\monitoring\SensorPlugin\SensorPluginInterface', 'Drupal\monitoring\Annotation\SensorPlugin');
-    $this->alterInfo('block');
+    $this->alterInfo('monitoring_sensor_plugins');
     $this->setCacheBackend($cache_backend, 'monitoring_sensor_plugins');
     $this->config = $config;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -213,6 +222,91 @@ class SensorManager extends DefaultPluginManager {
       $available_sensors[$sensor_name]['enabled'] = FALSE;
       $available_sensors[$sensor_name]['name'] = $sensor_name;
       \Drupal::state()->set('monitoring.available_sensors', $available_sensors);
+    }
+  }
+
+  /**
+   * Rebuild the sensor list.
+   *
+   * Automatically creates sensors based on new
+   */
+  public function rebuildSensors() {
+    // Declaring a flag for updated sensors.
+    $updated_sensors = FALSE;
+
+    // Load .install files
+    include DRUPAL_ROOT . '/core/includes/install.inc';
+    drupal_load_updates();
+    $storage = $this->entityTypeManager->getStorage('monitoring_sensor_config');
+
+    $this->moduleHandler->resetImplementations();
+
+    // Iterate through the installed implemented modules to see if
+    // there are any new requirements hook updates and initialize them.
+    foreach ($this->moduleHandler->getImplementations('requirements') as $module) {
+      if(!$storage->load('core_requirements_' . $module)) {
+        if (initialize_requirements_sensors($module)) {
+          drupal_set_message($this->t('The sensor @sensor has been added.', ['@sensor' => $storage->load('core_requirements_' . $module)->label()]));
+          $updated_sensors = TRUE;
+        }
+      }
+    }
+
+    // Delete any updated sensors that are not implemented in the requirements
+    // hook anymore.
+    $sensor_ids = $storage->getQuery()
+      ->condition('plugin_id', 'core_requirements')
+      ->execute();
+    /** @var \Drupal\monitoring\SensorConfigInterface $sensor */
+    foreach ($storage->loadMultiple($sensor_ids) as $sensor) {
+      $module = $sensor->getSetting('module');
+      if (!$this->moduleHandler->implementsHook($module, 'requirements')) {
+        drupal_set_message($this->t('The sensor @sensor has been removed.', ['@sensor' => $sensor->label()]));
+        $sensor->delete();
+        $updated_sensors = TRUE;
+
+        // Remove the sensor from the list of available sensors.
+        $available_sensors = \Drupal::state()->get('monitoring.available_sensors', []);
+        unset($available_sensors[$sensor->id()]);
+        \Drupal::state()->set('monitoring.available_sensors', $available_sensors);
+      }
+    }
+
+    /** @var \Drupal\Core\Config\StorageInterface[] $config_storages */
+    $config_storages[] = new FileStorage($this->moduleHandler->getModule('monitoring')->getPath() . '/config/install');
+    $config_storages[] = new FileStorage($this->moduleHandler->getModule('monitoring')->getPath() . '/config/optional');
+
+    // Rebuilds all non-addable sensors.
+    foreach ($this->getDefinitions() as $sensor_definition) {
+      if (!$sensor_definition['addable']) {
+
+        if ($sensor_definition['id'] !== 'update_status') {
+          $config_ids = [$sensor_definition['id']];
+        }
+        else {
+          $config_ids = ['update_core', 'update_contrib'];
+        }
+
+        foreach ($config_ids as $config_id) {
+          // Checks if the sensor is not created.
+          if (!$storage->load($config_id)) {
+            // Check the two directories install and optional for sensors that need to be created.
+            foreach ($config_storages as $config_storage) {
+              if ($data = $config_storage->read('monitoring.sensor_config.' . $config_id)) {
+                $storage->create($data)->trustData()->save();
+                drupal_set_message($this->t('The sensor @sensor has been created.', ['@sensor' => (string) $sensor_definition['label']]));
+                $updated_sensors = TRUE;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Set message to inform the user that there were no updated sensors.
+    if ($updated_sensors == FALSE) {
+      drupal_set_message($this->t('No changes were made.'));
     }
   }
 
