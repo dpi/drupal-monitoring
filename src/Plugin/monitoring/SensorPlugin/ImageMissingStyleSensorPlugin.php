@@ -45,9 +45,7 @@ class ImageMissingStyleSensorPlugin extends WatchdogAggregatorSensorPlugin {
     // Extends the watchdog query.
     $query = parent::getAggregateQuery();
     $query->addField('watchdog', 'variables');
-    $query->addField('watchdog', 'timestamp');
     $query->groupBy('variables');
-    $query->groupBy('timestamp');
     $query->orderBy('records_count', 'DESC');
     return $query;
   }
@@ -90,8 +88,10 @@ class ImageMissingStyleSensorPlugin extends WatchdogAggregatorSensorPlugin {
    */
   public function verboseResultCounting(array &$output) {
     if ($this->sensorConfig->getSetting('verbose_fields')) {
-      // Fetch the last 20 matching entries, aggregated.
+      // Fetch the top 20 matching entries, aggregated.
       $query = $this->getAggregateQuery();
+      // Also get the latest occurrence (highest timestamp).
+      $query->addExpression('MAX(timestamp)', 'timestamp');
       $query_result = $query->range(0, 20)->execute();
       $this->queryString = $query_result->getQueryString();
 

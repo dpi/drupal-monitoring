@@ -293,7 +293,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     /** @var \Drupal\file\FileUsage\FileUsageInterface $usage */
     $usage = \Drupal::service('file.usage');
     $usage->add($file, 'monitoring_test', 'node', 123456789);
-    for ($i = 0; $i <= 5; $i++) {
+    for ($i = 1; $i <= 6; $i++) {
       // We use the logger.dblog service to be able to set the referer.
       \Drupal::service('logger.dblog')->notice('Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.', [
           '%source_image_path' => $file->getFileUri(),
@@ -304,7 +304,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
           'link' => '',
           'referer' => 'http://example.com/node/123456789',
           'ip' => '127.0.0.1',
-          'timestamp' => \Drupal::time()->getRequestTime() - 10,
+          'timestamp' => \Drupal::time()->getRequestTime() - $i,
         ]);
     }
     \Drupal::logger('image')->notice('Source image at %source_image_path not found while trying to generate derivative image at %derivative_path.',
