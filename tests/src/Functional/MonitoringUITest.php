@@ -2,8 +2,8 @@
 
 namespace Drupal\Tests\monitoring\Functional;
 
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Serialization\Json;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\user\Entity\User;
 
@@ -178,7 +178,7 @@ class MonitoringUITest extends MonitoringTestBase {
 
     // Test if the Test sensor is listed as the oldest cached. We do not test
     // for the cached time as such test contains a risk of random fail.
-    $this->assertRaw(SafeMarkup::format('Sensor %sensor (%category) cached before', array('%sensor' => 'Test sensor', '%category' => 'Test')));
+    $this->assertRaw(new FormattableMarkup('Sensor %sensor (%category) cached before', array('%sensor' => 'Test sensor', '%category' => 'Test')));
 
     // Assert if .js & .css are loaded.
     $this->assertRaw('monitoring.js');
@@ -519,7 +519,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'settings[exclude_keys]' => 'requirement_excluded',
     ), t('Save'));
 
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Module system')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Module system')));
     $this->drupalGet('admin/config/system/monitoring/sensors/core_requirements_system');
     // Verify the change in excluded keys.
     $this->assertText('requirement_excluded');
@@ -708,7 +708,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'warning' => 6,
     );
     $this->submitThresholdSettings('test_sensor_exceeds', $thresholds);
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Test sensor exceeds')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Test sensor exceeds')));
     $this->assertThresholdSettingsUIDefaults('test_sensor_exceeds', $thresholds);
 
     // Make sure that it is possible to save empty thresholds.
@@ -717,7 +717,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'warning' => '',
     );
     $this->submitThresholdSettings('test_sensor_exceeds', $thresholds);
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Test sensor exceeds')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Test sensor exceeds')));
     $this->assertThresholdSettingsUIDefaults('test_sensor_exceeds', $thresholds);
 
     monitoring_sensor_manager()->resetCache();
@@ -793,7 +793,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'warning' => 11,
     );
     $this->submitThresholdSettings('test_sensor_falls', $thresholds);
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Test sensor falls')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Test sensor falls')));
     $this->assertThresholdSettingsUIDefaults('test_sensor_falls', $thresholds);
 
     // Make sure that it is possible to save empty thresholds.
@@ -802,7 +802,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'warning' => '',
     );
     $this->submitThresholdSettings('test_sensor_falls', $thresholds);
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Test sensor falls')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Test sensor falls')));
     $this->assertThresholdSettingsUIDefaults('test_sensor_falls', $thresholds);
 
     // Test validation.
@@ -876,7 +876,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'warning_high' => 15,
     );
     $this->submitThresholdSettings('test_sensor_inner', $thresholds);
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Test sensor inner')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Test sensor inner')));
     $this->assertThresholdSettingsUIDefaults('test_sensor_inner', $thresholds);
 
     // Make sure that it is possible to save empty inner thresholds.
@@ -887,7 +887,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'warning_high' => '',
     );
     $this->submitThresholdSettings('test_sensor_inner', $thresholds);
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Test sensor inner')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Test sensor inner')));
     $this->assertThresholdSettingsUIDefaults('test_sensor_inner', $thresholds);
 
     // Test validation.
@@ -953,7 +953,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'warning_high' => 14,
     );
     $this->submitThresholdSettings('test_sensor_outer', $thresholds);
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Test sensor outer')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Test sensor outer')));
     $this->assertThresholdSettingsUIDefaults('test_sensor_outer', $thresholds);
 
     // Make sure that it is possible to save empty outer thresholds.
@@ -964,7 +964,7 @@ class MonitoringUITest extends MonitoringTestBase {
       'warning_high' => '',
     );
     $this->submitThresholdSettings('test_sensor_outer', $thresholds);
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Test sensor outer')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'Test sensor outer')));
     $this->assertThresholdSettingsUIDefaults('test_sensor_outer', $thresholds);
 
     // Test validation.

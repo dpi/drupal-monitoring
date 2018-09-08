@@ -6,7 +6,7 @@
 
 namespace Drupal\monitoring\Entity;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -154,7 +154,7 @@ class SensorResultEntity extends ContentEntityBase implements SensorResultDataIn
    * {@inheritdoc}
    */
   public function setMessage($message, array $variables = array()) {
-    $this->set('sensor_message', SafeMarkup::format($message, $variables));
+    $this->set('sensor_message', new FormattableMarkup($message, $variables));
   }
 
   /**

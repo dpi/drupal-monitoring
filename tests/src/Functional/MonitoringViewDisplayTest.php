@@ -1,7 +1,7 @@
 <?php
 
 namespace Drupal\Tests\monitoring\Functional;
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\monitoring\Entity\SensorConfig;
 
 /**
@@ -40,7 +40,7 @@ class MonitoringViewDisplayTest extends MonitoringTestBase {
     $this->drupalPostForm(NULL, array(
       'settings[display]' => 'default',
     ), t('Save'));
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'All users')));
+    $this->assertText(new FormattableMarkup('Sensor @label saved.', array('@label' => 'All users')));
 
     // Check the value type has the default value.
     $sensor_config = SensorConfig::load('view_user_count');

@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\monitoring\FunctionalJavascript;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\file\Entity\File;
 use Drupal\FunctionalJavascriptTests\DrupalSelenium2Driver;
 use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
@@ -101,7 +101,7 @@ class MonitoringUiJavascriptTest extends JavascriptTestBase {
     }
     $this->drupalPostForm(NULL, $edit, 'Save');
 
-    $assert_session->pageTextContains(SafeMarkup::format('Sensor @label saved.', ['@label' => 'Node Entity Aggregator sensor']));
+    $assert_session->pageTextContains(new FormattableMarkup('Sensor @label saved.', ['@label' => 'Node Entity Aggregator sensor']));
 
     // Test details page by clicking the link in confirmation message.
     $this->clickLink('Node Entity Aggregator sensor');
@@ -186,7 +186,7 @@ class MonitoringUiJavascriptTest extends JavascriptTestBase {
     }
     $this->drupalPostForm(NULL, $edit, 'Save');
 
-    $assert_session->pageTextContains(SafeMarkup::format('Sensor @label saved.', ['@label' => 'File Entity Aggregator sensor']));
+    $assert_session->pageTextContains(new FormattableMarkup('Sensor @label saved.', ['@label' => 'File Entity Aggregator sensor']));
 
     // Test details page by clicking the link in confirmation message.
     $this->clickLink('File Entity Aggregator sensor');
@@ -248,7 +248,7 @@ class MonitoringUiJavascriptTest extends JavascriptTestBase {
       'settings[key]' => 'interval',
       'settings[config]' => 'automated_cron.settings',
     ], 'Save');
-    $assert_session->pageTextContains(SafeMarkup::format('Sensor @label saved.', ['@label' => 'UI created Sensor config']));
+    $assert_session->pageTextContains(new FormattableMarkup('Sensor @label saved.', ['@label' => 'UI created Sensor config']));
 
     // Go back to the sensor edit page,
     // Check the value type is properly selected.

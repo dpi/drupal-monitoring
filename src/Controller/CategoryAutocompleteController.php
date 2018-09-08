@@ -7,7 +7,7 @@
 
 namespace Drupal\monitoring\Controller;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\HtmlEscapedText;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -40,7 +40,7 @@ class CategoryAutocompleteController {
     $pattern = '/^' . $request->query->get('q') . '/i';
     $prefixMatches = preg_grep($pattern,  $categories);
     foreach ($prefixMatches as $config) {
-      $matches[] = array('value' => $config, 'label' => SafeMarkup::checkPlain($config)
+      $matches[] = array('value' => $config, 'label' => new HtmlEscapedText($config)
       );
     }
     return new JsonResponse($matches);

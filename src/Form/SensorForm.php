@@ -6,12 +6,10 @@
 
 namespace Drupal\monitoring\Form;
 
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\monitoring\SensorConfigInterface;
-use Drupal\monitoring\SensorPlugin\SensorPluginInterface;
 
 /**
  * Sensor settings form controller.

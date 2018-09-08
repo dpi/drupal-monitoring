@@ -2,7 +2,7 @@
 
 namespace Drupal\monitoring\Result;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\Unicode;
 use Drupal\monitoring\Entity\SensorResultDataInterface;
 use Drupal\monitoring\Sensor\SensorCompilationException;
@@ -212,7 +212,7 @@ class SensorResult implements SensorResultInterface {
     if (!empty($this->sensorMessage)) {
       // A message has been set by the sensor, use that as is and only do
       // placeholder replacements with the provided variables.
-      $message = SafeMarkup::format($this->sensorMessage['message'], $this->sensorMessage['variables']);
+      $message = new FormattableMarkup($this->sensorMessage['message'], $this->sensorMessage['variables']);
     }
     else {
 
@@ -236,7 +236,7 @@ class SensorResult implements SensorResultInterface {
         // If the sensor defines time interval value we append
         // the info to the message.
         if ($this->getSensorConfig()->getTimeIntervalValue()) {
-          $messages[] = SafeMarkup::format('@formatted_value in @time_interval', $default_variables);
+          $messages[] = new FormattableMarkup('@formatted_value in @time_interval', $default_variables);
         }
         else {
           $messages[] = $default_variables['@formatted_value'];
@@ -249,7 +249,7 @@ class SensorResult implements SensorResultInterface {
 
       // Set the expected value message if the sensor did not match.
       if ($this->isCritical() && $this->getExpectedValue() !== NULL) {
-        $messages[] = SafeMarkup::format('expected @expected', $default_variables);
+        $messages[] = new FormattableMarkup('expected @expected', $default_variables);
       }
       // Set the threshold message if there is any.
       if ($threshold_message !== NULL) {
@@ -261,10 +261,10 @@ class SensorResult implements SensorResultInterface {
       // Append all status messages which were added by the sensor.
       foreach ($this->statusMessages as $msg) {
         if (is_array($msg['message'])) {
-          $messages[] = SafeMarkup::format($renderer->renderPlain($msg['message']), array_merge($default_variables, $msg['variables']));
+          $messages[] = new FormattableMarkup($renderer->renderPlain($msg['message']), array_merge($default_variables, $msg['variables']));
         }
         else {
-          $messages[] = SafeMarkup::format($msg['message'], array_merge($default_variables, $msg['variables']));
+          $messages[] = new FormattableMarkup($msg['message'], array_merge($default_variables, $msg['variables']));
         }
       }
 
@@ -327,14 +327,14 @@ class SensorResult implements SensorResultInterface {
 
       $value_types = monitoring_value_types();
       if (!isset($value_types[$value_type])) {
-        throw new SensorCompilationException(SafeMarkup::format('Invalid value type @type', array('@type' => $value_type)));
+        throw new SensorCompilationException(new FormattableMarkup('Invalid value type @type', array('@type' => $value_type)));
       }
       elseif (empty($value_types[$value_type]['formatter_callback']) && $label = $this->getSensorConfig()->getValueLabel()) {
         $label = Unicode::strtolower($label);
-        return SafeMarkup::format('@value @label', array('@value' => $value, '@label' => $label));
+        return new FormattableMarkup('@value @label', array('@value' => $value, '@label' => $label));
       }
       elseif (isset($value_types[$value_type]['formatter_callback']) && !function_exists($value_types[$value_type]['formatter_callback'])) {
-        throw new SensorCompilationException(SafeMarkup::format('Formatter callback @callback for @type does not exist',
+        throw new SensorCompilationException(new FormattableMarkup('Formatter callback @callback for @type does not exist',
           array('@callback' => $value_types[$value_type]['formatter_callback'], '@type' => $value_type)));
       }
       elseif(isset($value_types[$value_type]['formatter_callback'])) {
@@ -350,10 +350,10 @@ class SensorResult implements SensorResultInterface {
       // @todo This assumption will no longer work when non-english messages
       // supported.
       $label = Unicode::strtolower($label);
-      return SafeMarkup::format('@value @label', array('@value' => $value, '@label' => $label));
+      return new FormattableMarkup('@value @label', array('@value' => $value, '@label' => $label));
     }
 
-    return SafeMarkup::format('Value @value', array('@value' => $value));
+    return new FormattableMarkup('Value @value', array('@value' => $value));
   }
 
   /**

@@ -4,7 +4,7 @@
  * Monitoring base install file.
  */
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Serialization\Yaml;
 use Drupal\monitoring\Entity\SensorConfig;
@@ -23,10 +23,10 @@ function monitoring_install() {
     foreach (NodeType::loadMultiple() as $node_type) {
       $sensor = SensorConfig::create(array(
         'id' => 'node_new_' . $node_type->id(),
-        'label' => SafeMarkup::format('New @type nodes', array('@type' => $node_type->label())),
-        'description' => SafeMarkup::format('New nodes of type @type', array('@type' => $node_type->label())),
+        'label' => new FormattableMarkup('New @type nodes', array('@type' => $node_type->label())),
+        'description' => new FormattableMarkup('New nodes of type @type', array('@type' => $node_type->label())),
         'plugin_id' => 'entity_aggregator',
-        'value_label' => SafeMarkup::format('@type nodes', array('@type' => $node_type->label())),
+        'value_label' => new FormattableMarkup('@type nodes', array('@type' => $node_type->label())),
         'value_type' => 'number',
         'category' => 'Content',
         'status' => TRUE,
@@ -50,7 +50,7 @@ function monitoring_install() {
     foreach (Index::loadMultiple() as $index) {
       $sensor = SensorConfig::create(array(
         'id' => 'search_api_' . $index->id(),
-        'label' => SafeMarkup::format('Search index queue size of @index', array('@index' => $index->label())),
+        'label' => new FormattableMarkup('Search index queue size of @index', array('@index' => $index->label())),
         'plugin_id' => 'search_api_unindexed',
         'value_type' => 'number',
         'value_label' => 'Unindexed items',

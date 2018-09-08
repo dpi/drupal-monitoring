@@ -6,7 +6,7 @@
 
 namespace Drupal\monitoring;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\Timer;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Cache\Cache;
@@ -163,7 +163,7 @@ class SensorRunner {
     $plugin = $sensor_config->getPlugin();
     // Check if sensor is enabled.
     if (!$plugin->isEnabled()) {
-      throw new DisabledSensorException(SafeMarkup::format('Sensor @sensor_name is not enabled and must not be run.', array('@sensor_name' => $sensor_config->id())));
+      throw new DisabledSensorException(new FormattableMarkup('Sensor @sensor_name is not enabled and must not be run.', array('@sensor_name' => $sensor_config->id())));
     }
 
     $result = $this->getResultObject($sensor_config);

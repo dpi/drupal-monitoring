@@ -6,7 +6,6 @@
 
 namespace Drupal\monitoring\Form;
 
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Entity\EntityForm;
 use Drupal\monitoring\SensorConfigInterface;
 use Drupal\monitoring\Sensor\DisabledSensorException;

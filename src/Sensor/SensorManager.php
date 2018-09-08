@@ -6,7 +6,7 @@
 
 namespace Drupal\monitoring\Sensor;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -133,7 +133,7 @@ class SensorManager extends DefaultPluginManager {
   public function getSensorConfigByName($sensor_name) {
     $sensor_config = SensorConfig::load($sensor_name);
     if ($sensor_config == NULL) {
-      throw new NonExistingSensorException(SafeMarkup::format('Sensor @sensor_name does not exist', array('@sensor_name' => $sensor_name)));
+      throw new NonExistingSensorException(new FormattableMarkup('Sensor @sensor_name does not exist', array('@sensor_name' => $sensor_name)));
     }
     return $sensor_config;
   }

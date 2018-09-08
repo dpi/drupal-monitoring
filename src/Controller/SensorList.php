@@ -4,12 +4,10 @@ namespace Drupal\monitoring\Controller;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\monitoring\SensorConfigInterface;
 use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\monitoring\Sensor\SensorManager;
 use Drupal\monitoring\SensorRunner;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Component\Utility\SafeMarkup;
 
 class SensorList extends ControllerBase {
 

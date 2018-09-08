@@ -6,17 +6,15 @@
 
 namespace Drupal\monitoring\Plugin\monitoring\SensorPlugin;
 
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Database\Database;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\DependencyTrait;
-use Drupal\Core\Entity\Entity;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Entity\Query\QueryAggregateInterface;
-use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\TypedData;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\monitoring\SensorPlugin\DatabaseAggregatorSensorPluginBase;
@@ -56,13 +54,6 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
   protected $entityManager;
 
   /**
-   * Local variable to store the query factory.
-   *
-   * @var \Drupal\Core\Entity\Query\QueryFactory
-   */
-  protected $entityQueryFactory;
-
-  /**
    * Allows plugins to control if the entity type can be configured.
    *
    * @var bool
@@ -79,7 +70,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
     $entity_info = $this->entityManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);
 
     // Get aggregate query for the entity type.
-    $query = $this->entityQueryFactory->getAggregate($this->sensorConfig->getSetting('entity_type'));
+    $query = $this->entityManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getAggregateQuery();
     $this->aggregateField = $entity_info->getKey('id');
 
     $this->addAggregate($query);
@@ -114,7 +105,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
     $entity_info = $this->entityManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);
 
     // Get query for the entity type.
-    $query = $this->entityQueryFactory->get($this->sensorConfig->getSetting('entity_type'));
+    $query = $this->entityManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getQuery();
     // Add conditions.
     foreach ($this->getConditions() as $condition) {
       if (empty($condition['field'])) {
@@ -142,10 +133,9 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
   /**
    * {@inheritdoc}
    */
-  public function __construct(SensorConfig $sensor_config, $plugin_id, $plugin_definition, EntityManagerInterface $entityManager, QueryFactory $query_factory) {
+  public function __construct(SensorConfig $sensor_config, $plugin_id, $plugin_definition, EntityManagerInterface $entityManager) {
     parent::__construct($sensor_config, $plugin_id, $plugin_definition);
     $this->entityManager = $entityManager;
-    $this->entityQueryFactory = $query_factory;
   }
 
   /**
@@ -156,8 +146,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
       $sensor_config,
       $plugin_id,
       $plugin_definition,
-      $container->get('entity.manager'),
-      $container->get('entity.query')
+      $container->get('entity.manager')
     );
   }
 
@@ -310,7 +299,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
   public function calculateDependencies() {
     $entity_type_id = $this->sensorConfig->getSetting('entity_type');
     if (!$entity_type_id) {
-      throw new \Exception(SafeMarkup::format('Sensor @id is missing the required entity_type setting.', array('@id' => $this->id())));
+      throw new \Exception(new FormattableMarkup('Sensor @id is missing the required entity_type setting.', array('@id' => $this->id())));
     }
     $entity_type = $this->entityManager->getDefinition($this->sensorConfig->getSetting('entity_type'));
     $this->addDependency('module', $entity_type->getProvider());

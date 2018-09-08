@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\monitoring\Kernel;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring\Result\SensorResultInterface;
@@ -184,7 +184,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $message = $result->getMessage();
     $error['%file'] = str_replace(DRUPAL_ROOT . '/', '', $error['%file']);
     // Assert the message has been set and replaced successfully.
-    $this->assertEqual($message, SafeMarkup::format('2 times: %type: @message in %function (Line %line of %file).', $error));
+    $this->assertEqual($message, new FormattableMarkup('2 times: %type: @message in %function (Line %line of %file).', $error));
 
     // Prepare another fake PHP notice.
     $new_error = [
@@ -199,8 +199,8 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $result = $this->runSensor('dblog_php_notices');
     $message = $result->getMessage();
     // Assert the message is still the one from above and not the new message.
-    $this->assertEqual($message, SafeMarkup::format('2 times: %type: @message in %function (Line %line of %file).', $error), 'The sensor message is still the old message.');
-    $this->assertNotEqual($message, SafeMarkup::format('%type: @message in %function (Line %line of %file).', $new_error), 'The sensor message is not the new message.');
+    $this->assertEqual($message, new FormattableMarkup('2 times: %type: @message in %function (Line %line of %file).', $error), 'The sensor message is still the old message.');
+    $this->assertNotEqual($message, new FormattableMarkup('%type: @message in %function (Line %line of %file).', $new_error), 'The sensor message is not the new message.');
 
     // Log the new error twice more, check it is now the sensor message.
     \Drupal::logger('php')->log($new_error['severity_level'], '%type: @message in %function (Line %line of %file).', $new_error);
@@ -209,8 +209,8 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $message = $result->getMessage();
     $new_error['%file'] = str_replace(DRUPAL_ROOT . '/', '', $new_error['%file']);
     // Assert the new message is returned as a message.
-    $this->assertEqual($message, SafeMarkup::format('3 times: %type: @message in %function (Line %line of %file).', $new_error), 'The new message is now the sensor message.');
-    $this->assertNotEqual($message, SafeMarkup::format('2 times: %type: @message in %function (Line %line of %file).', $error), 'The old message is not the sensor message anymore.');
+    $this->assertEqual($message, new FormattableMarkup('3 times: %type: @message in %function (Line %line of %file).', $new_error), 'The new message is now the sensor message.');
+    $this->assertNotEqual($message, new FormattableMarkup('2 times: %type: @message in %function (Line %line of %file).', $error), 'The old message is not the sensor message anymore.');
   }
 
   /**
@@ -455,7 +455,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $result = $this->runSensor('node_new_' . $type1->id());
     $this->assertEqual($result->getValue(), 2);
     // Test for the ContentEntityAggregatorSensorPlugin custom message.
-    $this->assertEqual($result->getMessage(), SafeMarkup::format('@count @unit in @time_interval', array(
+    $this->assertEqual($result->getMessage(), new FormattableMarkup('@count @unit in @time_interval', array(
       '@count' => $result->getValue(),
       '@unit' => strtolower($result->getSensorConfig()->getValueLabel()),
       '@time_interval' => \Drupal::service('date.formatter')

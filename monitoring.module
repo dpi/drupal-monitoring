@@ -4,7 +4,6 @@
  * Monitoring bootstrap file.
  */
 use Drupal\Component\Render\FormattableMarkup;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Url;
@@ -373,7 +372,7 @@ function theme_monitoring_config_box($variables) {
  */
 function monitoring_config_code($module, $type, $variables = array()) {
   $code = file_get_contents(drupal_get_path('module', $module) . '/config_tpl/' . $type . '.txt');
-  return SafeMarkup::format($code, $variables);
+  return new FormattableMarkup($code, $variables);
 }
 
 /**
@@ -553,10 +552,10 @@ function monitoring_node_type_insert(NodeTypeInterface $type) {
   }
   $sensor = SensorConfig::create(array(
     'id' => $config_id,
-    'label' => SafeMarkup::format('New @type nodes', array('@type' => $type->label())),
-    'description' => SafeMarkup::format('New nodes of type @type', array('@type' => $type->label())),
+    'label' => new FormattableMarkup('New @type nodes', array('@type' => $type->label())),
+    'description' => new FormattableMarkup('New nodes of type @type', array('@type' => $type->label())),
     'plugin_id' => 'entity_aggregator',
-    'value_label' => SafeMarkup::format('@type nodes', array('@type' => $type->label())),
+    'value_label' => new FormattableMarkup('@type nodes', array('@type' => $type->label())),
     'category' => 'Content',
     'status' => FALSE,
     'caching_time' => 600,
@@ -608,15 +607,15 @@ function monitoring_node_type_update(NodeTypeInterface $type) {
   }
   else {
     $sensor->id = $new_config_id;
-    $sensor->label = SafeMarkup::format(
+    $sensor->label = new FormattableMarkup(
       'New @type nodes',
       array('@type' => $type->label())
     );
-    $sensor->description = SafeMarkup::format(
+    $sensor->description = new FormattableMarkup(
       'New nodes of type @type',
       array('@type' => $type->label())
     );
-    $sensor->value_label = SafeMarkup::format(
+    $sensor->value_label = new FormattableMarkup(
       '@type nodes',
       array('@type' => $type->label())
     );
@@ -639,7 +638,7 @@ function monitoring_search_api_index_insert(IndexInterface $index) {
   }
   $sensor = SensorConfig::create(array(
     'id' => $config_id,
-    'label' => SafeMarkup::format('Search index queue size of @index', array('@index' => $index->label())),
+    'label' => new FormattableMarkup('Search index queue size of @index', array('@index' => $index->label())),
     'plugin_id' => 'search_api_unindexed',
     'value_label' => 'Unindexed items',
     'value_type' => 'number',
@@ -691,7 +690,7 @@ function monitoring_search_api_index_update(IndexInterface $index) {
   }
   else {
     $sensor->id = $new_config_id;
-    $sensor->label = SafeMarkup::format('Search index queue size of @index', array('@index' => $index->id()));
+    $sensor->label = new FormattableMarkup('Search index queue size of @index', array('@index' => $index->id()));
     $sensor->settings['index_id'] = $index->id();
     $sensor->save();
   }

@@ -3,7 +3,7 @@
 namespace Drupal\Tests\monitoring\Functional;
 
 use Behat\Mink\Element\NodeElement;
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -457,8 +457,8 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->assertEqual(count($log), 1, 'There should be one log entry: all sensors enabled by default added.');
 
     $sensor_config_all = monitoring_sensor_manager()->getAllSensorConfig();
-    $this->assertEqual(SafeMarkup::format($log[0]->message, unserialize($log[0]->variables)),
-      SafeMarkup::format('@count new sensor/s added: @names', array(
+    $this->assertEqual(new FormattableMarkup($log[0]->message, unserialize($log[0]->variables)),
+      new FormattableMarkup('@count new sensor/s added: @names', array(
         '@count' => count($sensor_config_all),
         '@names' => implode(', ', array_keys($sensor_config_all))
       )));
@@ -494,8 +494,8 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->assertTrue($result->isOk());
     $log = $this->loadWatchdog();
     $this->assertEqual(count($log), 2, 'Removal of comment_new sensor should be logged.');
-    $this->assertEqual(SafeMarkup::format($log[1]->message, unserialize($log[1]->variables)),
-      SafeMarkup::format('@count new sensor/s removed: @names', array(
+    $this->assertEqual(new FormattableMarkup($log[1]->message, unserialize($log[1]->variables)),
+      new FormattableMarkup('@count new sensor/s removed: @names', array(
           '@count' => 1,
           '@names' => 'comment_new'
         )));
