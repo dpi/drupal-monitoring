@@ -1,36 +1,13 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring\Tests\MonitoringTestBase.
- */
 
-namespace Drupal\monitoring\Tests;
+namespace Drupal\Tests\monitoring\Functional;
 
-use Drupal\Core\Extension\ModuleInstallerInterface;
-use Drupal\simpletest\WebTestBase;
+use Drupal\Component\Serialization\Json;
 
 /**
- * Base class for all monitoring web tests.
+ * Monitoring test helper trait.
  */
-abstract class MonitoringTestBase extends WebTestBase {
-
-  public static $modules = ['block', 'monitoring', 'monitoring_test'];
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function setUp() {
-    parent::setUp();
-
-    // @todo Remove when this issue is fixed: https://www.drupal.org/node/2611082
-    date_default_timezone_set('Australia/Sydney');
-
-    $this->drupalPlaceBlock('local_tasks_block');
-    $this->drupalPlaceBlock('local_actions_block');
-    if (!\Drupal::moduleHandler()->moduleExists('monitoring')) {
-      throw new \Exception("Failed to install modules, aborting test");
-    }
-  }
+trait MonitoringTestTrait {
 
   /**
    * Executes a sensor and returns the result.
@@ -60,7 +37,7 @@ abstract class MonitoringTestBase extends WebTestBase {
    * @return bool
    *   FALSE if one or more dependencies are missing, TRUE otherwise.
    *
-   * @see \Drupal\monitoring\Tests\MonitoringTestBase::uninstallModules()
+   * @see \Drupal\Tests\monitoring\Functional\MonitoringTestBase::uninstallModules()
    * @see \Drupal\Core\Extension\ModuleInstallerInterface::install()
    */
   protected function installModules(array $module_list, $enable_dependencies = TRUE) {
@@ -76,8 +53,6 @@ abstract class MonitoringTestBase extends WebTestBase {
     return $return;
   }
 
-
-
   /**
    * Uninstall modules and fix test container.
    *
@@ -91,7 +66,7 @@ abstract class MonitoringTestBase extends WebTestBase {
    * @return bool
    *   FALSE if one or more dependencies are missing, TRUE otherwise.
    *
-   * @see \Drupal\monitoring\Tests\MonitoringTestBase::installModules()
+   * @see \Drupal\Tests\monitoring\Functional\MonitoringTestBase::installModules()
    * @see \Drupal\Core\Extension\ModuleInstallerInterface::uninstall()
    */
   protected function uninstallModules(array $module_list, $uninstall_dependents = TRUE) {
@@ -106,4 +81,22 @@ abstract class MonitoringTestBase extends WebTestBase {
 
     return $return;
   }
+
+  /**
+   * Do the request.
+   *
+   * @param string $action
+   *   Action to perform.
+   * @param array $query
+   *   Path query key - value pairs.
+   *
+   * @return array
+   *   Decoded json object.
+   */
+  protected function doJsonRequest($action, $query = array()) {
+    $query['_format'] = 'json';
+    $this->drupalGet($action, ['query' => $query]);
+    return Json::decode((string) $this->getSession()->getPage()->getContent());
+  }
+
 }

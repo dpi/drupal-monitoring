@@ -1,11 +1,8 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring\Tests\MonitoringUITest.
- */
 
-namespace Drupal\monitoring\Tests;
+namespace Drupal\Tests\monitoring\Functional;
 
+use Drupal\Component\Serialization\Json;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\user\Entity\User;
@@ -83,277 +80,6 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->drupalGet('admin/config/system/monitoring/sensors/user_session_logouts');
     $this->assertFieldByName('conditions[2][field]', 'severity');
     $this->assertFieldByName('conditions[2][value]', 5);
-  }
-
-  /**
-   * Tests creation of sensor through UI.
-   */
-  public function testSensorCreation() {
-    $account = $this->drupalCreateUser(array('administer monitoring', 'monitoring reports'));
-    $this->drupalLogin($account);
-
-    // Create a node to test verbose fields.
-    $node = $this->drupalCreateNode(array(
-      'type' => 'article',
-    ));
-    $this->drupalGet('admin/config/system/monitoring/sensors/add');
-
-    $this->assertFieldByName('status', TRUE);
-
-    // Test creation of Node entity aggregator sensor.
-    $this->drupalPostForm('admin/config/system/monitoring/sensors/add', array(
-      'label' => 'Node Entity Aggregator sensor',
-      'id' => 'ui_test_sensor',
-      'plugin_id' => 'entity_aggregator',
-    ), t('Select sensor'));
-
-    $this->assertText('Sensor plugin settings');
-    $this->drupalPostForm(NULL, array('settings[entity_type]' => 'node'), t('Add another condition'));
-
-    $edit = array(
-      'description' => 'Sensor created to test UI',
-      'value_label' => 'Test Value',
-      'caching_time' => 100,
-      'settings[aggregation][time_interval_value]' => 86400,
-      'settings[entity_type]' => 'node',
-      'conditions[0][field]' => 'type',
-      'conditions[0][value]' => 'article',
-      'conditions[1][field]' => 'sticky',
-      'conditions[1][value]' => 0,
-    );
-
-    // Available fields for the entity type node.
-    $node_fields = ['nid', 'title', 'langcode', 'sticky', 'status', 'uuid', 'created', 'changed', 'uid'];
-
-    // Add more inputs to the form.
-    $this->postFormMultiple(t('Add another field'), count($node_fields));
-
-    // Add verbose fields based on node fields.
-    $edit = $this->addAllVerboseFields($node_fields, $edit);
-
-    $this->drupalPostForm(NULL, $edit, t('Save'));
-
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'Node Entity Aggregator sensor')));
-
-    // Test details page by clicking the link in confirmation message.
-    $this->clickLink(t('Node Entity Aggregator sensor'));
-    $this->assertResponse(200);
-    $this->assertText('Result');
-    $this->assertRaw('<th>nid</th>');
-    $this->assertRaw('<th>label</th>');
-    $this->assertRaw('<th>langcode');
-    $this->assertRaw('<th>title</th>');
-    $this->assertRaw('<th>status</th>');
-    $this->assertRaw('<th>sticky</th>');
-
-    // Assert that the output is correct.
-    $this->assertLink($node->getTitle());
-    $this->assertLink($node->getOwner()->getUsername());
-    $this->assertFalse($node->isSticky());
-    $this->assertText($node->uuid());
-    $this->assertText(\Drupal::service('date.formatter')->format($node->getCreatedTime(), 'short'));
-    $this->assertText(\Drupal::service('date.formatter')->format($node->getChangedTime(), 'short'));
-
-    $this->drupalGet('admin/config/system/monitoring/sensors/ui_test_sensor');
-    $this->assertFieldByName('caching_time', 100);
-    $this->assertFieldByName('conditions[0][field]', 'type');
-    $this->assertFieldByName('conditions[0][value]', 'article');
-    $this->assertFieldByName('conditions[1][field]', 'sticky');
-    $this->assertFieldByName('conditions[1][value]', '0');
-    $i = 2;
-    foreach ($node_fields as $field) {
-      $this->assertFieldByName('settings[verbose_fields][' . $i++ . ']', $field);
-    }
-
-    // Create a file to test.
-    $file_path = file_default_scheme() . '://test';
-    $contents = "some content here!!.";
-    file_put_contents($file_path, $contents);
-
-    // Test if the file exist.
-    $this->assertTrue(is_file($file_path));
-
-    // Create a file entity.
-    $file = entity_create('file', array(
-      'uri' => $file_path,
-      'uid' => 1,
-    ));
-    $file->save();
-
-    // Test if the entity was created.
-    $this->assertTrue($file->id());
-
-    // Test creation of File entity aggregator sensor.
-    $this->drupalPostForm('admin/config/system/monitoring/sensors/add', array(
-      'label' => 'File Entity Aggregator sensor',
-      'id' => 'file_test_sensor',
-      'plugin_id' => 'entity_aggregator',
-    ), t('Select sensor'));
-
-    $this->assertText('Sensor plugin settings');
-    $this->drupalPostForm(NULL, array('settings[entity_type]' => 'file'), t('Add another condition'));
-
-    // Available fields for entity type file.
-    $file_fields = ['fid', 'uuid', 'filename', 'uri', 'filemime', 'filesize', 'status', 'created'];
-    $edit = array();
-
-    // Add more inputs to the form.
-    $this->postFormMultiple(t('Add another field'), count($file_fields));
-
-    // Add verbose fields based on file fields.
-    $edit = $this->addAllVerboseFields($file_fields, $edit);
-
-    $this->drupalPostForm(NULL, $edit, t('Save'));
-
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'File Entity Aggregator sensor')));
-
-    // Test details page by clicking the link in confirmation message.
-    $this->clickLink(t('File Entity Aggregator sensor'));
-    $this->assertResponse(200);
-    $this->assertText('Result');
-    $this->assertRaw('<th>label</th>');
-    $this->assertRaw('<th>uuid</th>');
-    $this->assertRaw('<th>filename</th>');
-    $this->assertRaw('<th>filesize</th>');
-    $this->assertRaw('<th>uri</th>');
-    $this->assertRaw('<th>created</th>');
-
-    // Assert that the output is correct.
-    $this->assertText($file->getFilename());
-    $this->assertText($file->uuid());
-    $this->assertText($file->getSize());
-    $this->assertText($file->getMimeType());
-    $this->assertText(\Drupal::service('date.formatter')->format($file->getCreatedTime(), 'short'));
-
-    $this->drupalGet('admin/config/system/monitoring/sensors/file_test_sensor');
-    $i = 2;
-    foreach ($file_fields as $field) {
-      $this->assertFieldByName('settings[verbose_fields][' . $i++ . ']', $field);
-    }
-
-    $this->drupalGet('admin/config/system/monitoring/sensors/ui_test_sensor/delete');
-    $this->assertText('This action cannot be undone.');
-    $this->drupalPostForm(NULL, array(), t('Delete'));
-    $this->assertText('Node Entity Aggregator sensor has been deleted.');
-
-    $this->drupalPostForm('admin/config/system/monitoring/sensors/add', array(
-      'label' => 'UI created Sensor config',
-      'id' => 'ui_test_sensor_config',
-      'plugin_id' => 'config_value',
-    ), t('Select sensor'));
-
-    $this->assertText('Expected value');
-
-    $this->assertText('Sensor plugin settings');
-
-    // Test if the expected value type is no_value, the value label is hidden.
-    $this->drupalPostAjaxForm(NULL, array('value_type' => 'no_value'), 'value_type');
-    $this->assertNoText('The value label represents the units of the sensor value.');
-    $this->drupalPostAjaxForm(NULL, array('value_type' => 'bool'), 'value_type');
-    $this->assertText('The value label represents the units of the sensor value.');
-
-    $this->drupalPostForm(NULL, array(
-      'description' => 'Sensor created to test UI',
-      'value_label' => 'Test Value',
-      'caching_time' => 100,
-      'value_type' => 'bool',
-      'settings[key]' => 'interval',
-      'settings[config]' => 'automated_cron.settings',
-    ), t('Save'));
-    $this->assertText(SafeMarkup::format('Sensor @label saved.', array('@label' => 'UI created Sensor config')));
-
-    // Go back to the sensor edit page,
-    // Check the value type is properly selected.
-    $this->drupalGet('admin/config/system/monitoring/sensors/ui_test_sensor_config');
-    $this->assertOptionSelected('edit-value-type', 'bool');
-
-    // Update sensor with a config entity.
-    $this->drupalPostForm(NULL, array(
-      'settings[key]' => 'id',
-      'settings[config]' => 'views.view.content',
-    ), t('Save'));
-
-    // Make sure the config dependencies are set.
-    $sensor_config = SensorConfig::load('ui_test_sensor_config');
-    $dependencies = $sensor_config->get('dependencies');
-    $this->assertEqual($dependencies['config'], ['views.view.content']);
-
-    // Try to enable a sensor which is disabled by default and vice versa.
-    // Check the default status of cron safe threshold and new users sensors.
-    $sensor_cron = SensorConfig::load('core_cron_safe_threshold');
-    $this->assertTrue($sensor_cron->status());
-    $sensor_theme = SensorConfig::load('core_theme_default');
-    $this->assertFalse($sensor_theme->status());
-
-    // Change the status of these sensors.
-    $this->drupalPostForm('admin/config/system/monitoring/sensors', array(
-      'sensors[core_cron_safe_threshold]' => FALSE,
-      'sensors[core_theme_default]' => TRUE,
-    ), t('Update enabled sensors'));
-
-    // Make sure the changes have been made.
-    $sensor_cron = SensorConfig::load('core_cron_safe_threshold');
-    $this->assertFalse($sensor_cron->status());
-    $sensor_theme = SensorConfig::load('core_theme_default');
-    $this->assertTrue($sensor_theme->status());
-
-    // Test the creation of a Watchdog sensor with default configuration.
-    $this->drupalGet('admin/config/system/monitoring/sensors/add');
-    $this->drupalPostForm(NULL, array(
-      'label' => 'Watchdog Sensor',
-      'id' => 'watchdog_sensor',
-      'plugin_id' => 'watchdog_aggregator',
-    ), t('Select sensor'));
-    $this->drupalPostForm(NULL, array(), t('Save'));
-    $this->assertText(t('Sensor Watchdog Sensor saved'));
-
-    // Edit sensor with invalid fields.
-    $this->drupalPostForm('admin/config/system/monitoring/sensors/watchdog_sensor', array(
-      'conditions[0][field]' => 'condition_invalid',
-      'verbose_fields[0][field_key]' => 'verbose_invalid',
-    ), t('Save'));
-
-    $this->assertText('The field condition_invalid does not exist in the table "watchdog".');
-    $this->assertText('The field verbose_invalid does not exist in the table "watchdog".');
-
-    // Load the created sensor and assert the default configuration.
-    $sensor_config = SensorConfig::load('watchdog_sensor');
-    $settings = $sensor_config->getSettings();
-    $this->assertEqual($sensor_config->getValueType(), 'number');
-    $this->assertEqual($settings['table'], 'watchdog');
-    $this->assertEqual($settings['time_interval_field'], 'timestamp');
-
-    // Test that the entity id is set after selecting a watchdog sensor.
-    $this->drupalGet('admin/config/system/monitoring/sensors/add');
-    $this->drupalPostForm(NULL, array(
-      'label' => 'Test entity id',
-      'id' => 'test_entity',
-      'plugin_id' => 'watchdog_aggregator',
-    ), t('Select sensor'));
-
-    $this->drupalPostAjaxForm(NULL, array('plugin_id' => 'entity_aggregator'), 'plugin_id');
-    $this->drupalPostForm(NULL, array(
-      'plugin_id' => 'entity_aggregator',
-    ), t('Save'));
-    $this->assertText('Sensor Test entity id saved.');
-
-    // Test that the description of the verbose output changes.
-    $this->drupalGet('admin/config/system/monitoring/sensors/add');
-    $this->drupalPostForm(NULL, array(
-      'label' => 'Test description Verbose',
-      'id' => 'test_description',
-      'plugin_id' => 'entity_aggregator',
-    ), t('Select sensor'));
-
-    // Change entity type to File.
-    $this->drupalPostAjaxForm(NULL, array('settings[entity_type]' => 'file'), 'settings[entity_type]');
-    $this->assertText(t('Available Fields for entity type File:'));
-    $this->assertText('changed, created, fid, filemime, filename, filesize, id, label, langcode, status, uid, uri, uuid');
-
-    // Change entity type to User.
-    $this->drupalPostAjaxForm(NULL, array('settings[entity_type]' => 'user'), 'settings[entity_type]');
-    $this->assertText(t('Available Fields for entity type User:'));
-    $this->assertText('access, changed, created, default_langcode, id, init, label, langcode, login, mail, name, pass, preferred_admin_langcode, preferred_langcode, roles, status, timezone, uid, uuid');
   }
 
   /**
@@ -464,16 +190,15 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->assertLink(t('Details'));
 
     // Test the overview table.
-    $tbody = $this->xpath('//table[@id="monitoring-sensors-overview"]/tbody');
-    $rows = $tbody[0];
+    $rows = $this->getSession()->getPage()->findAll('css', '#monitoring-sensors-overview tbody tr');
     $i = 0;
     foreach (monitoring_sensor_config_by_categories() as $category => $category_sensor_config) {
-      $tr = $rows->tr[$i];
-      $this->assertEqual($category, $tr->td->h3);
+      $tr = $rows[$i];
+      $this->assertEquals($category, $tr->find('css', 'h3')->getText());
       foreach ($category_sensor_config as $sensor_config) {
         $i++;
-        $tr = $rows->tr[$i];
-        $this->assertEqual($tr->td[0]->span, $sensor_config->getLabel());
+        $tr = $rows[$i];
+        $this->assertEquals($sensor_config->getLabel(), $tr->find('css', 'td:nth-child(1) span')->getText());
       }
 
       $i++;
@@ -498,6 +223,9 @@ class MonitoringUITest extends MonitoringTestBase {
   public function testSensorDetailPage() {
     $account = $this->drupalCreateUser(array('monitoring reports', 'monitoring verbose', 'monitoring force run'), 'integrity_test_user', TRUE);
     $this->drupalLogin($account);
+
+    $page = $this->getSession()->getPage();
+    $assert_session = $this->assertSession();
 
     $this->drupalCreateNode(array('promote' => NODE_PROMOTED));
 
@@ -530,31 +258,32 @@ class MonitoringUITest extends MonitoringTestBase {
 
     $this->assertText(t('Log'));
 
-    $rows = $this->xpath('//div[contains(@class, "view-monitoring-sensor-results")]//tbody/tr');
-    $this->assertEqual(count($rows), 1);
-    $this->assertEqual(trim((string) $rows[0]->td[1]), 'WARNING');
-    $this->assertEqual(trim((string) $rows[0]->td[2]), '1 druplicons in 1 day, falls below 2');
+    $rows = $this->getSession()->getPage()->findAll('css', '.view-monitoring-sensor-results tbody tr');
+    $this->assertEquals(1, count($rows));
+    $this->assertEquals('WARNING', $rows[0]->find('css', 'td:nth-child(2)')->getText());
+    $this->assertEquals( '1 druplicons in 1 day, falls below 2', $rows[0]->find('css', 'td:nth-child(3)')->getText());
 
     // Create another node and run again.
     $node = $this->drupalCreateNode(array('promote' => '1'));
     $this->drupalPostForm(NULL, array(), t('Run again'));
     $this->assertText('OK');
     $this->assertText('2 druplicons in 1 day');
-    $rows = $this->xpath('//div[contains(@class, "view-monitoring-sensor-results")]//tbody/tr');
-    $this->assertEqual(count($rows), 2);
-    // The latest log result should be displayed first.
-    $this->assertEqual(trim((string) $rows[0]->td[1]), 'OK');
-    $this->assertTrue(preg_match('/\b' . 'monitoring-ok' . '\b/', $rows[0]->attributes()['class']));
-    $this->assertEqual(trim((string) $rows[1]->td[1]), 'WARNING');
-    $this->assertTrue(preg_match('/\b' . 'monitoring-warning' . '\b/', $rows[1]->attributes()['class']));
+
+    $rows = $this->getSession()->getPage()->findAll('css', '.view-monitoring-sensor-results tbody tr');
+    $this->assertEquals(2, count($rows));
+    $this->assertEquals('OK', $rows[0]->find('css', 'td:nth-child(2)')->getText());
+    $this->assertSession()->elementTextContains('css', '.view-monitoring-sensor-results tbody tr.monitoring-ok td:nth-child(2)', 'OK');
+    $this->assertEquals('WARNING', $rows[1]->find('css', 'td:nth-child(2)')->getText());
+    $this->assertSession()->elementTextContains('css', '.view-monitoring-sensor-results tbody tr.monitoring-warning td:nth-child(2)', 'WARNING');
 
     // Refresh the page, this not run the sensor again.
     $this->drupalGet('admin/reports/monitoring/sensors/entity_aggregate_test');
     $this->assertText('OK');
     $this->assertText('2 druplicons in 1 day');
     $this->assertText(t('Verbose output is not available for cached sensor results. Click force run to see verbose output.'));
-    $rows = $this->xpath('//div[contains(@class, "view-monitoring-sensor-results")]//tbody/tr');
-    $this->assertEqual(count($rows), 2);
+    $rows = $this->getSession()->getPage()->findAll('css', '.view-monitoring-sensor-results tbody tr');
+    $this->assertEquals(2, count($rows));
+
 
     // Test the verbose output.
     $this->drupalPostForm(NULL, array(), t('Run now'));
@@ -588,11 +317,10 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->assertNoText(t('Arguments'));
 
     // Test the timestamp is formatted correctly.
-    $xpath = $this->xpath('//*[@id="all_users_with_privileged_access"]/div/table/tbody');
     $expected_time = \Drupal::service('date.formatter')->format($account->getCreatedTime(), 'short');
-    $this->assertEqual($xpath[0]->tr->td[2], $expected_time);
+    $assert_session->elementContains('css', '#all_users_with_privileged_access tbody td:nth-child(3)', $expected_time);
     $expected_time = \Drupal::service('date.formatter')->format($account->getLastAccessedTime(), 'short');
-    $this->assertEqual($xpath[0]->tr->td[3], $expected_time);
+    $assert_session->elementContains('css', '#all_users_with_privileged_access tbody td:nth-child(4)', $expected_time);
 
     // Assert None output when we don't have restricted roles with permissions.
     $this->assertText('List of roles with restricted permissions');
@@ -622,19 +350,18 @@ class MonitoringUITest extends MonitoringTestBase {
       'Created',
       'Last accessed',
     ];
-    $xpath = $this->xpath('//*[@id="all_users_with_privileged_access"]/div/table');
-    $header = (array) $xpath[0]->thead->tr->th;
-    $body = (array) $xpath[0]->tbody;
-    $first_row = $body['tr'][0]->td;
-    $second_row = $body['tr'][1]->td;
 
     $this->assertText('All users with privileged access');
-    $this->assertEqual(count($body['tr']), 3);
-    $this->assertEqual($expected_header, $header);
+    $rows = $page->findAll('css', '#all_users_with_privileged_access tbody tr');
+    $this->assertEquals(3, count($rows));
+    $assert_session->elementContains('css', '#all_users_with_privileged_access thead th:nth-child(1)', $expected_header[0]);
+    $assert_session->elementContains('css', '#all_users_with_privileged_access thead th:nth-child(2)', $expected_header[1]);
+    $assert_session->elementContains('css', '#all_users_with_privileged_access thead th:nth-child(3)', $expected_header[2]);
+    $assert_session->elementContains('css', '#all_users_with_privileged_access thead th:nth-child(4)', $expected_header[3]);
 
     // Assert roles are listed on the table.
-    $this->assertEqual($first_row[1], implode(", ", $test_user->getRoles()));
-    $this->assertEqual($second_row[1], implode(", ", $account->getRoles()));
+    $assert_session->elementContains('css', '#all_users_with_privileged_access tbody tr:nth-child(1) td:nth-child(2)', implode(', ', $test_user->getRoles()));
+    $assert_session->elementContains('css', '#all_users_with_privileged_access tbody tr:nth-child(2) td:nth-child(2)', implode(', ', $account->getRoles()));
 
     // Check the new user name in verbose output.
     $this->assertText('test_user');
@@ -663,8 +390,7 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->assertText('Deleted users with privileged access');
 
     // Assert the deleted user is listed.
-    $xpath = $this->xpath('//*[@id="deleted_users_with_privileged_access"]/div/table');
-    $this->assertEqual((string) $xpath[0]->tbody->tr->td[0], 'integrity_test_user');
+    $assert_session->elementContains('css', '#deleted_users_with_privileged_access tbody tr:nth-child(1) td:nth-child(1)', 'integrity_test_user');
 
     // Test enabled sensor link works after save.
     $this->drupalPostForm('admin/config/system/monitoring/sensors/user_integrity', array(), 'Save');
@@ -842,84 +568,19 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->drupalLogin($account);
 
     // Test with "C", which matches Content and Cron.
-    $categories = $this->drupalGetJSON('/monitoring-category/autocomplete', array('query' => array('q' => 'C')));
-    $this->assertEqual(count($categories), 2, '2 autocomplete suggestions.');
-    $this->assertEqual('Content', $categories[0]['label']);
-    $this->assertEqual('Cron', $categories[1]['label']);
+    $categories = Json::decode($this->drupalGet('/monitoring-category/autocomplete', [
+      'query' => [
+        'q' => 'C',
+        '_format' => 'json',
+      ],
+    ]));
+    $this->assertEquals(2, count($categories));
+    $this->assertEquals('Content', $categories[0]['label']);
+    $this->assertEquals('Cron', $categories[1]['label']);
 
     // Check that a non-matching prefix returns no suggestions.
-    $categories = $this->drupalGetJSON('/monitoring-category/autocomplete', array('query' => array('q' => 'non_existing_category')));
+    $categories = Json::decode($this->drupalGet('/monitoring-category/autocomplete', ['query' => ['q' => 'non_existing_category', '_format' => 'json']]));
     $this->assertTrue(empty($categories), 'No autocomplete suggestions for non-existing query string.');
-  }
-
-  /**
-   * Tests the UI/settings of the installed modules sensor.
-   *
-   * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\EnabledModulesSensorPlugin
-   */
-  public function testSensorInstalledModulesUI() {
-    $account = $this->drupalCreateUser(array('administer monitoring'));
-    $this->drupalLogin($account);
-
-    // Visit settings page of the disabled sensor. We run the sensor to check
-    // for deltas. This led to fatal errors with a disabled sensor.
-    $this->drupalGet('admin/config/system/monitoring/sensors/monitoring_installed_modules');
-
-    // Enable the sensor.
-    monitoring_sensor_manager()->enableSensor('monitoring_installed_modules');
-
-    // Test submitting the defaults and enabling the sensor.
-    $this->drupalPostForm('admin/config/system/monitoring/sensors/monitoring_installed_modules', array(
-      'status' => TRUE,
-    ), t('Save'));
-    // Reset the sensor config so that it reflects changes done via POST.
-    monitoring_sensor_manager()->resetCache();
-    // The sensor should now be OK.
-    $result = $this->runSensor('monitoring_installed_modules');
-    $this->assertTrue($result->isOk());
-
-    // Expect the contact and book modules to be installed.
-    $this->drupalPostForm('admin/config/system/monitoring/sensors/monitoring_installed_modules', array(
-      'settings[modules][contact]' => TRUE,
-      'settings[modules][book]' => TRUE,
-    ), t('Save'));
-    // Reset the sensor config so that it reflects changes done via POST.
-    monitoring_sensor_manager()->resetCache();
-    // Make sure the extended / hidden_modules form submit cleanup worked and
-    // they are not stored as a duplicate in settings.
-    $sensor_config = SensorConfig::load('monitoring_installed_modules');
-    $this->assertTrue(!array_key_exists('extended', $sensor_config->settings), 'Do not persist extended module hidden selections separately.');
-    // The sensor should escalate to CRITICAL.
-    $result = $this->runSensor('monitoring_installed_modules');
-    $this->assertTrue($result->isCritical());
-    $this->assertEqual($result->getMessage(), '2 modules delta, expected 0, Following modules are expected to be installed: Book (book), Contact (contact)');
-    $this->assertEqual($result->getValue(), 2);
-
-    // Reset modules selection with the update selection (ajax) button.
-    $this->drupalGet('admin/config/system/monitoring/sensors/monitoring_installed_modules');
-    $this->drupalPostAjaxForm(NULL, array(), array('op' => t('Update module selection')));
-    $this->drupalPostForm(NULL, array(), t('Save'));
-    $result = $this->runSensor('monitoring_installed_modules');
-    $this->assertTrue($result->isOk());
-    $this->assertEqual($result->getMessage(), '0 modules delta');
-
-    // The default setting is not to allow additional modules. Enable comment
-    // and the sensor should escalate to CRITICAL.
-    $this->installModules(array('help'));
-    // The container is rebuilt and needs to be reassigned to avoid static
-    // config cache issues. See https://www.drupal.org/node/2398867
-    $this->container = \Drupal::getContainer();
-    $result = $this->runSensor('monitoring_installed_modules');
-    $this->assertTrue($result->isCritical());
-    $this->assertEqual($result->getMessage(), '1 modules delta, expected 0, Following modules are NOT expected to be installed: Help (help)');
-    $this->assertEqual($result->getValue(), 1);
-    // Allow additional, the sensor should not escalate anymore.
-    $this->drupalPostForm('admin/config/system/monitoring/sensors/monitoring_installed_modules', array(
-      'settings[allow_additional]' => 1,
-    ), t('Save'));
-    $result = $this->runSensor('monitoring_installed_modules');
-    $this->assertTrue($result->isOk());
-    $this->assertEqual($result->getMessage(), '0 modules delta');
   }
 
   /**
@@ -1356,36 +1017,4 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->assertText('Warning high must be lower than critical high or empty.');
   }
 
-  /**
-   * Add verbose fields to the sensor creation form.
-   *
-   * @param array $fields
-   *   Fields of an entity type to be added to the form.
-   * @param array $edit
-   *   Field data in an associative array.
-   *
-   * @return array
-   *   An array with all verbose fields.
-   */
-  public function addAllVerboseFields($fields = array(), $edit = array()) {
-    $i = 2;
-    foreach ($fields as $field) {
-      $edit['settings[verbose_fields][' . $i++ . ']'] = $field;
-    }
-    return $edit;
-  }
-
-  /**
-   * Add inputs of verbose fields to the form based on $times.
-   *
-   * @param string $button
-   *   Name of the button to be used.
-   * @param int $times
-   *   Times while the loop is executing.
-   */
-  public function postFormMultiple($button, $times) {
-    for ($i = 0; $i < $times; ++$i) {
-      $this->drupalPostForm(NULL, array(), $button);
-    }
-  }
 }

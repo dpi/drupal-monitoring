@@ -4,9 +4,9 @@
  * Contains \Drupal\monitoring_demo\Tests\MonitoringDemoTest.
  */
 
-namespace Drupal\monitoring_demo\Tests;
+namespace Drupal\Tests\monitoring_demo\Functional;
 
-use Drupal\monitoring\Tests\MonitoringTestBase;
+use Drupal\Tests\monitoring\Functional\MonitoringTestBase;
 
 /**
  * Tests the demo module for monitoring.

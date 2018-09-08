@@ -4,16 +4,16 @@
  * Contains \Drupal\monitoring_multigraph\Tests\MultigraphWebTest
  */
 
-namespace Drupal\monitoring_multigraph\Tests;
+namespace Drupal\Tests\monitoring_multigraph\Functional;
 
-use Drupal\simpletest\WebTestBase;
+use Drupal\Tests\BrowserTestBase;
 
 /**
  * Tests the Multigraph forms (add/edit/delete).
  *
  * @group monitoring
  */
-class MultigraphWebTest extends WebTestBase {
+class MultigraphWebTest extends BrowserTestBase {
 
   /**
    * User object.
@@ -27,21 +27,21 @@ class MultigraphWebTest extends WebTestBase {
    *
    * @var string[]
    */
-  public static $modules = array(
+  public static $modules = [
     'dblog',
     'node',
     'monitoring',
     'monitoring_multigraph',
-  );
+  ];
 
   /**
    * Configures test base and executes test cases.
    */
   public function testMultigraphForm() {
     // Create and log in our user.
-    $this->adminUser = $this->drupalCreateUser(array(
+    $this->adminUser = $this->drupalCreateUser([
       'administer monitoring',
-    ));
+    ]);
 
     $this->drupalLogin($this->adminUser);
 
@@ -55,31 +55,31 @@ class MultigraphWebTest extends WebTestBase {
    */
   public function doTestMultigraphAdd() {
     // Add a few sensors.
-    $values = array(
+    $values = [
       'label' => $this->randomString(),
       'id' => 'multigraph_123',
       'description' => $this->randomString(),
       'sensor_add_select' => 'dblog_404',
-    );
+    ];
     $this->drupalPostForm('admin/config/system/monitoring/multigraphs/add', $values, t('Add sensor'));
     $this->assertText(t('Sensor "Page not found errors" added. You have unsaved changes.'));
 
-    $this->drupalPostForm(NULL, array(
+    $this->drupalPostForm(NULL, [
       'sensor_add_select' => 'user_failed_logins',
-    ), t('Add sensor'));
+    ], t('Add sensor'));
     $this->assertText(t('Sensor "Failed user logins" added. You have unsaved changes.'));
 
-    $this->drupalPostForm(NULL, array(
+    $this->drupalPostForm(NULL, [
       'sensor_add_select' => 'user_successful_logins',
-    ), t('Add sensor'));
+    ], t('Add sensor'));
     $this->assertText(t('Sensor "Successful user logins" added. You have unsaved changes.'));
 
     // And last but not least, change all sensor label values and save form.
-    $this->drupalPostForm(NULL, array(
+    $this->drupalPostForm(NULL, [
       'sensors[dblog_404][label]' => 'Page not found errors (test)',
       'sensors[user_failed_logins][label]' => 'Failed user logins (test)',
       'sensors[user_successful_logins][label]' => 'Successful user logins (test)',
-    ), t('Save'));
+    ], t('Save'));
     $this->assertText(t('Multigraph settings saved.'));
     $this->assertText('Page not found errors (test), Failed user logins (test), Successful user logins (test)');
   }
@@ -102,28 +102,28 @@ class MultigraphWebTest extends WebTestBase {
     $this->assertText('Edit Multigraph');
 
     // Change label, description and add a sensor.
-    $values = array(
+    $values = [
       'label' => 'Watchdog severe entries (test)',
       'description' => 'Watchdog entries with severity Warning or higher (test)',
       'sensor_add_select' => 'user_successful_logins',
-    );
+    ];
     $this->drupalPostForm(NULL, $values, t('Add sensor'));
     $this->assertText('Sensor "Successful user logins" added. You have unsaved changes.');
 
     // Remove a sensor.
+    $this->getSession()->getPage()->pressButton('remove_dblog_404');
     // (drupalPostAjaxForm() lets us target the button precisely.)
-    $this->drupalPostAjaxForm(NULL, array(), array('remove_dblog_404' => t('Remove')));
     $this->assertText(t('Sensor "Page not found errors" removed.  You have unsaved changes.'));
-    $this->drupalPostForm(NULL, array(), t('Save'));
+    $this->drupalPostForm(NULL, [], t('Save'));
 
     // Change weights and save form.
-    $this->drupalPostForm('admin/config/system/monitoring/multigraphs/watchdog_severe_entries', array(
+    $this->drupalPostForm('admin/config/system/monitoring/multigraphs/watchdog_severe_entries', [
       'sensors[user_successful_logins][weight]' => -2,
       'sensors[dblog_event_severity_error][weight]' => -1,
       'sensors[dblog_event_severity_critical][weight]' => 0,
       'sensors[dblog_event_severity_emergency][weight]' => 1,
       'sensors[dblog_event_severity_alert][weight]' => 2,
-    ), t('Save'));
+    ], t('Save'));
     $this->assertText(t('Multigraph settings saved.'));
 
     // Go back to multigraph overview and check changed values.
@@ -144,7 +144,7 @@ class MultigraphWebTest extends WebTestBase {
     $this->assertText('Watchdog entries with severity Warning or higher');
 
     // Delete.
-    $this->drupalPostForm('admin/config/system/monitoring/multigraphs/watchdog_severe_entries/delete', array(), t('Delete'));
+    $this->drupalPostForm('admin/config/system/monitoring/multigraphs/watchdog_severe_entries/delete', [], t('Delete'));
     $this->assertText('The Watchdog severe entries (test) multigraph has been deleted');
 
     // Go back to multigraph overview and check that multigraph is deleted.

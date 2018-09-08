@@ -1,10 +1,6 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring\Tests\MonitoringCaptchaTest.
- */
 
-namespace Drupal\monitoring\Tests;
+namespace Drupal\Tests\monitoring\Functional;
 
 /**
  * Tests the captcha failed attempts sensor.
@@ -14,6 +10,11 @@ namespace Drupal\monitoring\Tests;
  */
 class MonitoringCaptchaTest extends MonitoringTestBase {
 
+  /**
+   * Modules to install.
+   *
+   * @var array
+   */
   public static $modules = array('captcha');
 
   /**

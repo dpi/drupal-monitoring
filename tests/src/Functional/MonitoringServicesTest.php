@@ -1,25 +1,24 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring\Tests\MonitoringServicesTest.
- */
 
-namespace Drupal\monitoring\Tests;
+namespace Drupal\Tests\monitoring\Functional;
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
 use Drupal\dynamic_page_cache\EventSubscriber\DynamicPageCacheSubscriber;
 use Drupal\monitoring\Entity\SensorConfig;
-use Drupal\rest\Tests\RESTTestBase;
 
 /**
  * Tests for monitoring services.
  *
  * @group monitoring
  */
-class MonitoringServicesTest extends RESTTestBase {
+class MonitoringServicesTest extends MonitoringTestBase {
 
-  public static $modules = array('dblog', 'basic_auth', 'monitoring', 'views', 'node');
+  /**
+   * Modules to install.
+   *
+   * @var array
+   */
+  public static $modules = array('dblog', 'basic_auth', 'monitoring', 'views', 'node', 'rest');
 
   /**
    * User account created.
@@ -34,9 +33,6 @@ class MonitoringServicesTest extends RESTTestBase {
   public function setUp() {
     parent::setUp();
 
-    $this->defaultMimeType = 'application/json';
-    $this->defaultFormat = 'json';
-
     $this->servicesAccount = $this->drupalCreateUser(array('restful get monitoring-sensor', 'restful get monitoring-sensor-result'));
   }
 
@@ -46,7 +42,7 @@ class MonitoringServicesTest extends RESTTestBase {
   public function testSensorConfig() {
     $this->drupalLogin($this->servicesAccount);
 
-    $response_data = $this->doRequest('monitoring-sensor');
+    $response_data = $this->doJsonRequest('monitoring-sensor');
     $this->assertResponse(200);
 
     foreach (monitoring_sensor_manager()->getAllSensorConfig() as $sensor_name => $sensor_config) {
@@ -67,11 +63,11 @@ class MonitoringServicesTest extends RESTTestBase {
     }
 
     $sensor_name = 'sensor_that_does_not_exist';
-    $this->doRequest('monitoring-sensor/' . $sensor_name);
+    $this->doJsonRequest('monitoring-sensor/' . $sensor_name);
     $this->assertResponse(404);
 
     $sensor_name = 'dblog_event_severity_error';
-    $response_data = $this->doRequest('monitoring-sensor/' . $sensor_name);
+    $response_data = $this->doJsonRequest('monitoring-sensor/' . $sensor_name);
     $this->assertResponse(200);
     $sensor_config = SensorConfig::load($sensor_name);
     $this->assertEqual($response_data['sensor'], $sensor_config->id());
@@ -97,13 +93,13 @@ class MonitoringServicesTest extends RESTTestBase {
     $this->drupalLogin($this->servicesAccount);
 
     $sensor_name = 'dblog_event_severity_error';
-    $response_data = $this->doRequest('monitoring-sensor/' . $sensor_name);
+    $response_data = $this->doJsonRequest('monitoring-sensor/' . $sensor_name);
     $this->assertResponse(200);
     $sensor_config = SensorConfig::load($sensor_name);
     $this->assertEqual($response_data['label'], $sensor_config->getLabel());
     $sensor_config->set('label', 'TestLabelForCaching');
     $sensor_config->save();
-    $response_data = $this->doRequest('monitoring-sensor/' . $sensor_name);
+    $response_data = $this->doJsonRequest('monitoring-sensor/' . $sensor_name);
     $this->assertResponse(200);
     $this->assertEqual($response_data['label'], 'TestLabelForCaching');
   }
@@ -115,7 +111,7 @@ class MonitoringServicesTest extends RESTTestBase {
     $this->drupalLogin($this->servicesAccount);
 
     // Test request for sensor results with expanded sensor config.
-    $response_data = $this->doRequest('monitoring-sensor-result', array('expand' => 'sensor'));
+    $response_data = $this->doJsonRequest('monitoring-sensor-result', array('expand' => 'sensor'));
     $this->assertResponse(200);
     foreach (monitoring_sensor_manager()->getEnabledSensorConfig() as $sensor_name => $sensor_config) {
       $this->assertTrue(isset($response_data[$sensor_name]['sensor']));
@@ -124,7 +120,7 @@ class MonitoringServicesTest extends RESTTestBase {
 
     // Try a request without expanding the sensor config and check that it is not
     // present.
-    $response_data = $this->doRequest('monitoring-sensor-result');
+    $response_data = $this->doJsonRequest('monitoring-sensor-result');
     $this->assertResponse(200);
     $this->assertEqual('UNCACHEABLE', $this->drupalGetHeader(DynamicPageCacheSubscriber::HEADER),
       'Render array returned, rendered as HTML response, but uncacheable: Dynamic Page Cache is running, but not caching.');
@@ -136,17 +132,17 @@ class MonitoringServicesTest extends RESTTestBase {
 
     // Test non existing sensor.
     $sensor_name = 'sensor_that_does_not_exist';
-    $this->doRequest('monitoring-sensor-result/' . $sensor_name);
+    $this->doJsonRequest('monitoring-sensor-result/' . $sensor_name);
     $this->assertResponse(404);
 
     // Test disabled sensor - note that monitoring_git_dirty_tree is disabled
     // by default.
     $sensor_name = 'monitoring_git_dirty_tree';
-    $this->doRequest('monitoring-sensor-result/' . $sensor_name);
+    $this->doJsonRequest('monitoring-sensor-result/' . $sensor_name);
     $this->assertResponse(404);
 
     $sensor_name = 'dblog_event_severity_error';
-    $response_data = $this->doRequest('monitoring-sensor-result/' . $sensor_name, array('expand' => 'sensor'));
+    $response_data = $this->doJsonRequest('monitoring-sensor-result/' . $sensor_name, array('expand' => 'sensor'));
     $this->assertResponse(200);
     // The response must contain the sensor.
     $this->assertTrue(isset($response_data['sensor']));
@@ -154,7 +150,7 @@ class MonitoringServicesTest extends RESTTestBase {
 
     // Try a request without expanding the sensor config and check that it is not
     // present.
-    $response_data = $this->doRequest('monitoring-sensor-result/' . $sensor_name);
+    $response_data = $this->doJsonRequest('monitoring-sensor-result/' . $sensor_name);
     $this->assertResponse(200);
     $this->assertTrue(!isset($response_data['sensor']));
   }
@@ -188,24 +184,6 @@ class MonitoringServicesTest extends RESTTestBase {
     if (isset($response_result['sensor_info'])) {
       $this->assertEqual($response_result['sensor_info'], $sensor_config->toArray());
     }
-  }
-
-  /**
-   * Do the request.
-   *
-   * @param string $action
-   *   Action to perform.
-   * @param array $query
-   *   Path query key - value pairs.
-   *
-   * @return array
-   *   Decoded json object.
-   */
-  protected function doRequest($action, $query = array()) {
-    $query['_format'] = $this->defaultFormat;
-    $url = Url::fromUri('base:' . $action, array('absolute' => TRUE, 'query' => $query));
-    $result = $this->httpRequest($url, 'GET', NULL, $this->defaultMimeType);
-    return Json::decode($result);
   }
 
 }

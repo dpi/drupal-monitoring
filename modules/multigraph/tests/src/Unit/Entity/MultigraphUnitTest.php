@@ -1,11 +1,9 @@
 <?php
-/**
- * @file
- * Contains \tests\Unit\MultigraphUnitTest.
- */
 
-namespace tests\Unit\Entity;
+namespace Drupal\Tests\monitoring_multigraph\Unit\Entity;
 
+use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
+use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\monitoring_multigraph\Entity\Multigraph;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -28,7 +26,7 @@ class MultigraphUnitTest extends UnitTestCase {
    * {@inheritdoc}
    */
   protected function setUp() {
-    $this->entityManager = $this->getMock('\Drupal\Core\Entity\EntityManagerInterface');
+    $this->entityManager = $this->getMock(EntityManagerInterface::class);
 
     $container = new ContainerBuilder();
     $container->set('entity.manager', $this->entityManager);
@@ -55,7 +53,7 @@ class MultigraphUnitTest extends UnitTestCase {
     ), 'monitoring_multigraph');
 
     // Mock whatever is used in calculateDependencies().
-    $sensor_storage = $this->getMock('\Drupal\Core\Config\Entity\ConfigEntityStorageInterface');
+    $sensor_storage = $this->getMock(ConfigEntityStorageInterface::class);
     $sensor_storage->expects($this->any())
       ->method('load')
       ->willReturnMap(array(

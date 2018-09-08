@@ -1,11 +1,8 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring\Tests\MonitoringCoreWebTest.
- */
 
-namespace Drupal\monitoring\Tests;
+namespace Drupal\Tests\monitoring\Functional;
 
+use Behat\Mink\Element\NodeElement;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Database\Database;
@@ -107,21 +104,21 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->drupalLogin($test_user);
     // Test output and default message replacement.
     $this->drupalGet('admin/reports/monitoring/sensors/user_successful_logins');
-    $xpath = $this->xpath('//*[@id="unaggregated_result"]/div/table/tbody/tr');
-    $wid = $xpath[0]->td[0]->a;
-    $message = (string) $xpath[0]->td[1];
-    $this->assertEqual(count($xpath), 5, 'There are 5 results in the table.');
-    $this->assertTrue($wid, 'Found WID in verbose output');
-    $this->assertTrue($message == 'Session opened for .', 'Found replaced message in output.');
+
+    $rows = $this->getSession()->getPage()->findAll('css', '#unaggregated_result tbody tr');
+    $message = $rows[0]->find('css', 'td:nth-child(2)')->getText();
+    $this->assertEquals(5, count($rows), 'There are 5 results in the table.');
+    $this->assertTrue(!empty($rows[0]->find('css', 'a')->getText()), 'Found WID in verbose output');
+    $this->assertEquals("Session opened for {$test_user->getDisplayName()}.", $message, 'Found replaced message in output.');
     $this->assertText('Session opened for ' . $test_user->label());
+
     // Remove variables from the fields and assert message has no replacements.
     $this->drupalPostForm('admin/config/system/monitoring/sensors/user_successful_logins', ['verbose_fields[variables][field_key]' => ''], t('Save'));
     $this->drupalGet('admin/reports/monitoring/sensors/user_successful_logins');
-    $xpath = $this->xpath('//*[@id="unaggregated_result"]/div/table/tbody/tr');
-    $wid = (string) $xpath[0]->td[0];
-    $message = (string) $xpath[0]->td[1];
-    $this->assertTrue($wid, 'Found WID in verbose output');
-    $this->assertTrue($message == 'Session opened for %name.', 'Found unreplaced message in output.');
+    $rows = $this->getSession()->getPage()->findAll('css', '#unaggregated_result tbody tr');
+    $message = $rows[0]->find('css', 'td:nth-child(2)')->getText();
+    $this->assertTrue(!empty($rows[0]->find('css', 'td:nth-child(1)')->getText()), 'Found WID in verbose output');
+    $this->assertEquals('Session opened for %name.', $message, 'Found unreplaced message in output.');
   }
 
   /**
@@ -155,28 +152,19 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     /** @var User $test_user */
     $test_user = User::load($test_user->id());
     $this->drupalGet('/admin/reports/monitoring/sensors/user_sessions_authenticated');
+
+    $query = "SELECT sessions.uid AS uid, sessions.hostname AS hostname, sessions.timestamp AS timestamp FROM {$this->databasePrefix}sessions sessions WHERE (uid != :db_condition_placeholder_0) AND (timestamp > :db_condition_placeholder_1) ORDER BY timestamp DESC LIMIT 10 OFFSET 0";
+    $this->assertSession()->elementTextContains('css', '#unaggregated_result details pre', $query);
+
     // 3 fields are expected to be displayed.
-    $query = $this->xpath('//*[@id="unaggregated_result"]/div/details/div/div[1]');
-    // Find the query and explode it on line breaks.
-    $query_array = explode(PHP_EOL, ((string) $query[0]->pre));
-    $this->assertEqual(count($query_array), 6, 'Correct query count.');
-    $this->assertEqual(trim($query_array[0]), 'SELECT sessions.uid AS uid, sessions.hostname AS hostname, sessions.timestamp AS timestamp', 'Found first query line.');
-    $this->assertEqual(trim($query_array[1]), 'FROM', 'Found second query line.');
-    // Skip line with session id in it.
-    $query_array[3] = str_replace('  ', ' ', $query_array[3]);
-    $this->assertEqual(trim($query_array[3]), 'WHERE (uid != :db_condition_placeholder_0) AND (timestamp > :db_condition_placeholder_1)', 'Found fourth query line.');
-    $this->assertEqual(trim($query_array[4]), 'ORDER BY timestamp DESC', 'Found fifth query line.');
-    $this->assertEqual(trim($query_array[5]), 'LIMIT 10 OFFSET 0', 'Found sixth query line.');
-    $results = $this->xpath('//*[@id="unaggregated_result"]/div/table/tbody/tr')[0]->td;
-    $this->assertTrue(count($results) == 3, '3 fields have been found in the verbose result.');
+    $columns = $this->getSession()->getPage()->findAll('css', '#unaggregated_result tbody tr:nth-child(1) td');
+    $this->assertTrue(count($columns) == 3, '3 fields have been found in the verbose result.');
 
     // Test DatabaseAggregator history table result.
-    $xpath = $this->xpath('//*[@id="history"]/div/table/tbody/tr');
-    $this->assertEqual($xpath[0]->td[1], 1, 'record_count found in History.');
+    $this->assertSession()->elementTextContains('css', '#history tbody tr:nth-child(1) td:nth-child(2)', '1', 'record_count found in History.');
     // Test the timestamp is shown and formatted correctly.
-    $login_time = (string) $xpath[0]->td[0];
     $expected_time = \Drupal::service('date.formatter')->format(floor($test_user->getLastLoginTime() / 86400) * 86400, 'short');
-    $this->assertEqual($expected_time, $login_time);
+    $this->assertSession()->elementTextContains('css', '#history tbody tr:nth-child(1) td:nth-child(1)', $expected_time);
 
     // The username should be replaced in the message.
     $this->drupalGet('/admin/reports/monitoring/sensors/dblog_event_severity_notice');
@@ -373,19 +361,23 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
       'core/modules/system/src/Form/CronForm.php:126',
     ];
 
+    $convert_to_array = function (NodeElement $header) {
+      return $header->getText();
+    };
+
     // Check out sensor result page.
     $this->drupalPostForm('/admin/reports/monitoring/sensors/dblog_php_notices', [], t('Run now'));
-    $xpath = $this->xpath('//*[@id="unaggregated_result"]/div/table');
-    $header = (array) $xpath[0]->thead->tr->th;
-    $body = (array) $xpath[0]->tbody;
-    $this->assertEqual($expected_header, $header, 'The header is correct.');
-    $first_message = (array) $body['tr'][0]->td;
-    $second_message = (array) $body['tr'][1]->td;
-    $this->assertEqual(count($body['tr']), 2, 'Two PHP notices were logged.');
+    $headers = $this->getSession()->getPage()->findAll('css', '#unaggregated_result thead tr th');
+    $headers = array_map($convert_to_array, $headers);
+    $this->assertEquals($expected_header, $headers, 'The header is correct.');
+
+    $rows = $this->getSession()->getPage()->findAll('css', '#unaggregated_result tbody tr');
+    $this->assertEquals(2, count($rows), 'Two PHP notices were logged.');
+
+    $first_message = array_map($convert_to_array, $rows[0]->findAll('css', 'td'));
+    $second_message = array_map($convert_to_array, $rows[1]->findAll('css', 'td'));
     $this->assertEqual($first_message, $expected_body_one, 'The first notice is as expected.');
-    $this->assertEqual($first_message[0], 2, 'The first notice was logged twice.');
     $this->assertEqual($second_message, $expected_body_two, 'The second notice is as expected');
-    $this->assertEqual($second_message[0], 1, 'The second notice was logged once.');
 
     // Test Filename shortening.
     $this->assertEqual(str_replace(DRUPAL_ROOT . '/', '', $error['%file'] . ':' . $error['%line']), $first_message[4], 'Filename was successfully shortened.');
@@ -396,7 +388,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
    *
    * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\UserFailedLoginsSensorPlugin
    */
-  protected function testUserFailedLoginSensorPlugin() {
+  public function testUserFailedLoginSensorPlugin() {
 
     // Add a failed attempt for the admin account.
     $this->drupalPostForm('user/login', [
@@ -407,26 +399,25 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     // Check the verbose sensor result.
     $this->drupalLogin($this->rootUser);
     $this->drupalGet('admin/reports/monitoring/sensors/user_failed_logins');
-    $xpath = $this->xpath('//*[@id="unaggregated_result"]/div/table');
-    $this->assertEqual(count($xpath[0]->tbody->tr), 1, 'Found 1 results in table');
-    // The username has a <em> tag so we have to concatenate it.
-    $this->assertEqual(rtrim((string) ($xpath[0]->tbody->tr->td[1]), '.') . ($xpath[0]->tbody->tr->td[1]->em), 'Login attempt failed for admin');
+    $rows = $this->getSession()->getPage()->findAll('css', '#unaggregated_result tbody tr');
+
+    $this->assertEquals(1, count($rows), 'Found 1 results in table');
+    $this->assertSession()->elementTextContains('css', '#unaggregated_result tbody tr:nth-child(1) td:nth-child(2)', 'Login attempt failed for admin');
 
     // Test the timestamp is formatted correctly.
-    $wid = (string) $xpath[0]->tbody->tr->td[0]->a;
+    $wid = $rows[0]->find('css', 'td:nth-child(1) a')->getText();
     $query = \Drupal::database()->select('watchdog');
     $query->addField('watchdog', 'timestamp');
     $query->condition('wid', $wid);
     $result = $query->range(0, 10)->execute()->fetchObject();
-    $login_time = (string) $xpath[0]->tbody->tr->td[2];
     $expected_time = \Drupal::service('date.formatter')->format($result->timestamp, 'short');
-    $this->assertEqual($expected_time, $login_time);
+    $this->assertSession()->elementTextContains('css', '#unaggregated_result tbody tr:nth-child(1) td:nth-child(3)', $expected_time);
   }
 
   /**
    * Tests the non existing user failed login sensor.
    */
-  protected function testNonExistingUserFailedLoginSensorPlugin() {
+  public function testNonExistingUserFailedLoginSensorPlugin() {
     // Insert a failed login event.
     \Drupal::database()->insert('watchdog')->fields(array(
       'type' => 'user',
@@ -439,10 +430,11 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     // Check the verbose sensor result.
     $this->drupalLogin($this->rootUser);
     $this->drupalGet('admin/reports/monitoring/sensors/user_void_failed_logins');
-    $xpath = $this->xpath('//*[@id="unaggregated_result"]/div/table');
-    $this->assertEqual(count($xpath[0]->tbody->tr), 1, 'Found 1 results in table');
-    // The ip has a <em> tag so we have to concatenate it.
-    $this->assertEqual(rtrim((string) ($xpath[0]->tbody->tr->td[1]), '.') . ($xpath[0]->tbody->tr->td[1]->em), 'Login attempt failed from 127.0.0.1');
+
+    $rows = $this->getSession()->getPage()->findAll('css', '#unaggregated_result tbody tr');
+
+    $this->assertEquals(1, count($rows), 'Found 1 results in table');
+    $this->assertSession()->elementTextContains('css', '#unaggregated_result tbody tr:nth-child(1) td:nth-child(2)', 'Login attempt failed from 127.0.0.1');
   }
 
   /**
@@ -680,12 +672,12 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->assertLink($node3->label());
 
     // Assert Query result appears.
-    $xpath = $this->xpath('//*[@id="result"]/div/details/div/div[1]')[0];
-    $this->assertTrue(strpos((string) $xpath->pre, 'base_table') !== FALSE);
+    $assert_session = $this->assertSession();
+    $assert_session->elementTextContains('css', '#result', 'base_table');
 
     // Check timestamp is formated correctly.
-    $xpath = $this->xpath('//*[@id="result"]/div/table/tbody/tr[1]')[0];
-    $this->assertEqual($xpath->td[2], \Drupal::service('date.formatter')->format($node1->getCreatedTime(), 'short'));
+    $timestamp = \Drupal::service('date.formatter')->format($node1->getCreatedTime(), 'short');
+    $assert_session->elementTextContains('css', '#result tbody tr:nth-child(2) td:nth-child(3)', $timestamp);
 
     $this->clickLink(t('Edit'));
     // Assert some of the 'available fields'.
@@ -769,15 +761,17 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     ])->execute();
 
     $this->drupalGet('admin/reports/monitoring/sensors/dblog_404');
-    $xpath = $this->xpath('//*[@id="unaggregated_result"]/div/table/tbody');
 
-    $this->assertEqual(count($xpath[0]->tr), 2, 'Two rows found.');
-    $this->assertEqual($xpath[0]->tr[0]->td[1], 2, 'Two access to "/non_existing_page"');
+    $rows = $this->getSession()->getPage()->findAll('css', '#unaggregated_result tbody tr');
+
+    $this->assertEquals(2, count($rows), 'Two rows found.');
+
+    $this->assertEquals('2', $rows[0]->find('css', 'td:nth-child(2)')->getText(), 'Two access to "/non_existing_page"');
 
     // Test the timestamp is the last one and that is formatted correctly.
-    $login_time = (string) $xpath[0]->tr[0]->td[2];
+    $login_time = $rows[0]->find('css', 'td:nth-child(3)')->getText();
     $expected_time = \Drupal::service('date.formatter')->format($event_time, 'short');
-    $this->assertEqual($expected_time, $login_time);
+    $this->assertEquals($expected_time, $login_time);
   }
   /**
    * Tests the default used temporary files sensor.

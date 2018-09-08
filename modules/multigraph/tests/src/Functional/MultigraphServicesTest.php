@@ -4,32 +4,31 @@
  * Contains \Drupal\monitoring_multigraph\Tests\MultigraphServicesTest.
  */
 
-namespace Drupal\monitoring_multigraph\Tests;
+namespace Drupal\Tests\monitoring_multigraph\Functional;
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Url;
-use Drupal\rest\Tests\RESTTestBase;
+use Drupal\Tests\monitoring\Functional\MonitoringTestBase;
 
 /**
  * Tests for REST services provided by Monitoring Multigraph.
  *
  * @group monitoring
  */
-class MultigraphServicesTest extends RESTTestBase {
+class MultigraphServicesTest extends MonitoringTestBase {
 
   /**
    * Modules to install.
    *
    * @var string[]
    */
-  public static $modules = array(
+  public static $modules = [
     'dblog',
     'hal',
     'rest',
     'node',
     'basic_auth',
     'monitoring_multigraph',
-  );
+  ];
 
   /**
    * User account to make REST requests.
@@ -44,12 +43,9 @@ class MultigraphServicesTest extends RESTTestBase {
   public function setUp() {
     parent::setUp();
 
-    $this->defaultMimeType = 'application/json';
-    $this->defaultFormat = 'json';
-
-    $this->servicesAccount = $this->drupalCreateUser(array(
+    $this->servicesAccount = $this->drupalCreateUser([
       'restful get monitoring-multigraph',
-    ));
+    ]);
   }
 
   /**
@@ -58,11 +54,11 @@ class MultigraphServicesTest extends RESTTestBase {
   public function testMultigraph() {
     $this->drupalLogin($this->servicesAccount);
 
-    $response_data = $this->doRequest('monitoring-multigraph');
+    $response_data = $this->doJsonRequest('monitoring-multigraph');
     $this->assertResponse(200);
 
     /** @var \Drupal\monitoring_multigraph\MultigraphInterface[] $multigraphs */
-    $multigraphs = \Drupal::entityManager()
+    $multigraphs = \Drupal::entityTypeManager()
       ->getStorage('monitoring_multigraph')
       ->loadMultiple();
 
@@ -77,12 +73,12 @@ class MultigraphServicesTest extends RESTTestBase {
 
     // Test response for non-existing multigraph.
     $name = 'multigraph_that_does_not_exist';
-    $this->doRequest('monitoring-multigraph/' . $name);
+    $this->doJsonRequest('monitoring-multigraph/' . $name);
     $this->assertResponse(404);
 
     // Test the predefined multigraph.
     $name = 'watchdog_severe_entries';
-    $response_data = $this->doRequest('monitoring-multigraph/' . $name);
+    $response_data = $this->doJsonRequest('monitoring-multigraph/' . $name);
     $this->assertResponse(200);
     $multigraph = $multigraphs[$name];
     $this->assertEqual($response_data['id'], $multigraph->id());
@@ -90,24 +86,6 @@ class MultigraphServicesTest extends RESTTestBase {
     $this->assertEqual($response_data['description'], $multigraph->getDescription());
     $this->assertEqual($response_data['sensors'], $multigraph->getSensorsRaw());
     $this->assertEqual($response_data['uri'], Url::fromRoute('rest.monitoring-multigraph.GET.json' , ['id' => $multigraph->id(), '_format' => 'json'])->setAbsolute()->toString());
-  }
-
-  /**
-   * Do the request.
-   *
-   * @param string $action
-   *   Action to perform.
-   * @param array $query
-   *   Path query key - value pairs.
-   *
-   * @return array
-   *   Decoded json object.
-   */
-  protected function doRequest($action, $query = array()) {
-    $query['_format'] = $this->defaultFormat;
-    $url = Url::fromUri('base:' . $action, array('absolute' => TRUE, 'query' => $query));
-    $result = $this->httpRequest($url, 'GET', NULL, $this->defaultMimeType);
-    return Json::decode($result);
   }
 
 }

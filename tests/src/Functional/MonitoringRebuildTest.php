@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\monitoring\Tests;
+namespace Drupal\Tests\monitoring\Functional;
 
 use Drupal\monitoring\Entity\SensorConfig;
 

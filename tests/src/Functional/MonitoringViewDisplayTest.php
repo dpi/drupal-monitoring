@@ -1,10 +1,6 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring\Tests\MonitoringViewDisplayTest.
- */
 
-namespace Drupal\monitoring\Tests;
+namespace Drupal\Tests\monitoring\Functional;
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\monitoring\Entity\SensorConfig;
 
