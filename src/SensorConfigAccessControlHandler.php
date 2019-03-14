@@ -27,15 +27,17 @@ class SensorConfigAccessControlHandler extends EntityAccessControlHandler {
     $plugin_definition = $entity->getPlugin()->getPluginDefinition();
 
     if ($operation == 'delete' && !$plugin_definition['addable']) {
-      return AccessResult::forbidden();
+      return AccessResult::forbidden('Cannot delete non-addable sensor configuration instances.');
     }
-    if ($operation == 'view') {
+    else if ($operation == 'force run') {
+      return AccessResult::allowedIfHasPermission($account, 'monitoring force run');
+    }
+    else if ($operation == 'view') {
       if (!$entity->isEnabled()) {
-        return AccessResult::forbidden()->cacheUntilEntityChanges($entity);
+        return AccessResult::forbidden('Sensor is not enabled.')
+          ->addCacheableDependency($entity);
       }
-      elseif ($account->hasPermission('monitoring reports')) {
-        return AccessResult::allowed()->cachePerUser();
-      }
+      return AccessResult::allowedIfHasPermission($account, 'monitoring reports');
     }
     return parent::checkAccess($entity, $operation, $account);
   }

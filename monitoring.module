@@ -4,13 +4,44 @@
  * Monitoring bootstrap file.
  */
 use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Url;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring\Result\SensorResultInterface;
+use Drupal\monitoring\SensorConfigInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\search_api\IndexInterface;
+
+/**
+ * Implements hook_entity_operation().
+ */
+function monitoring_entity_operation(EntityInterface $entity) {
+  if (!$entity instanceof SensorConfigInterface) {
+    return [];
+  }
+
+  $operations = [];
+
+  if ($entity->access('view')) {
+    $operations['view'] = [
+      'title' => \t('Details'),
+      'weight' => -20,
+      'url' => $entity->toUrl('details-form'),
+    ];
+  }
+
+  if ($entity->access('force run')) {
+    $operations['force_run'] = [
+      'title' => \t('Force execution'),
+      'weight' => -10,
+      'url' => $entity->toUrl('force-run-sensor'),
+    ];
+  }
+
+  return $operations;
+}
 
 /**
  * Returns an instance of the sensor manager.
