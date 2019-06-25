@@ -4,6 +4,7 @@ namespace Drupal\Tests\monitoring\Functional;
 
 use Behat\Mink\Element\NodeElement;
 use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -470,7 +471,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     // critical status.
     $result = $this->runSensor('monitoring_disappeared_sensors');
     $this->assertTrue($result->isCritical());
-    $this->assertEqual($result->getMessage(), 'Missing sensor comment_new');
+    $this->assertEqual($result->getMessage(), 'Missing sensor comment_new, Missing sensor core_requirements_comment');
     // There should be no new logs.
     $this->assertEqual(count($this->loadWatchdog()), 1);
 
@@ -484,9 +485,10 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->assertTrue($result->isOk());
     $this->assertEqual(count($this->loadWatchdog()), 1);
 
-    // Do the correct procedure to remove a sensor - first disable the sensor
+    // Do the correct procedure to remove a sensor - first disable thes sensors
     // and then uninstall the comment module.
     monitoring_sensor_manager()->disableSensor('comment_new');
+    monitoring_sensor_manager()->disableSensor('core_requirements_comment');
     $this->uninstallModules(array('comment'));
 
     // The sensor should not report any problem this time.
@@ -494,11 +496,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $this->assertTrue($result->isOk());
     $log = $this->loadWatchdog();
     $this->assertEqual(count($log), 2, 'Removal of comment_new sensor should be logged.');
-    $this->assertEqual(new FormattableMarkup($log[1]->message, unserialize($log[1]->variables)),
-      new FormattableMarkup('@count new sensor/s removed: @names', array(
-          '@count' => 1,
-          '@names' => 'comment_new'
-        )));
+    $this->assertEqual(new FormattableMarkup($log[1]->message, unserialize($log[1]->variables)), '2 new sensor/s removed: comment_new, core_requirements_comment');
   }
 
   /**
