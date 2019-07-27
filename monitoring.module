@@ -8,6 +8,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Url;
 use Drupal\monitoring\Entity\SensorConfig;
+use Drupal\monitoring\Entity\SensorResultEntity;
 use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\search_api\IndexInterface;
@@ -235,7 +236,7 @@ function monitoring_sensor_result_save(SensorResultInterface $result) {
     'timestamp' => $result->getTimestamp(),
     'execution_time' => $result->getExecutionTime(),
   );
-  $result_entity = entity_create('monitoring_sensor_result', $values);
+  $result_entity = SensorResultEntity::create($values);
   $result_entity->save();
   return $result_entity;
 }
@@ -258,7 +259,7 @@ function monitoring_sensor_result_last($sensor_name) {
     ->execute();
 
   if (!empty($result)) {
-    return entity_load('monitoring_sensor_result', reset($result));
+    return SensorResultEntity::load(reset($result));
   }
 
   return NULL;
@@ -284,7 +285,7 @@ function monitoring_sensor_result_second_last($sensor_name) {
     ->execute();
 
   if (!empty($result)) {
-    return entity_load('monitoring_sensor_result', reset($result));
+    return SensorResultEntity::load(reset($result));
   }
 
   return NULL;
@@ -440,7 +441,7 @@ function monitoring_clear_missing_sensor_submit($form, FormStateInterface $form_
     );
   }
   \Drupal::state()->set('monitoring.available_sensors', $available_sensors);
-  drupal_set_message(t('All missing sensors have been cleared.'));
+  \Drupal::messenger()->addMessage(t('All missing sensors have been cleared.'));
 }
 
 /**

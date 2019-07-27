@@ -349,7 +349,7 @@ class GitDirtyTreeSensorPlugin extends SensorPluginBase implements ExtendedInfoS
     $exit_code = 0;
     exec($this->buildCommand($cmd), $output, $exit_code);
     if ($exit_code > 0) {
-      drupal_set_message($error, 'error');
+      $this->messenger()->addError($error);
     }
     return $output;
   }

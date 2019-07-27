@@ -214,10 +214,10 @@ class MultigraphForm extends EntityForm {
     if ($sensor_name = $form_state->getValue(array('sensor_add_select'))) {
       $sensor_label = $this->entityTypeManager->getStorage('monitoring_sensor_config')->load($sensor_name)->getLabel();
       $multigraph->addSensor($sensor_name);
-      drupal_set_message($this->t('Sensor "@sensor_label" added. You have unsaved changes.', array('@sensor_label' => $sensor_label)), 'warning');
+      $this->messenger()->addWarning($this->t('Sensor "@sensor_label" added. You have unsaved changes.', array('@sensor_label' => $sensor_label)));
     }
     else {
-      drupal_set_message($this->t('No sensor selected.'), 'warning');
+      $this->messenger()->addWarning($this->t('No sensor selected.'));
     }
   }
 
@@ -240,7 +240,7 @@ class MultigraphForm extends EntityForm {
     $sensor_name = substr($button_name, strlen('remove_'));
     $sensor_label = $this->entityTypeManager->getStorage('monitoring_sensor_config')->load($sensor_name)->getLabel();
     $multigraph->removeSensor($sensor_name);
-    drupal_set_message($this->t('Sensor "@sensor_label" removed.  You have unsaved changes.', array('@sensor_label' => $sensor_label)), 'warning');
+    $this->messenger()->addWarning($this->t('Sensor "@sensor_label" removed.  You have unsaved changes.', array('@sensor_label' => $sensor_label)));
   }
 
   /**
@@ -249,7 +249,7 @@ class MultigraphForm extends EntityForm {
   public function save(array $form, FormStateInterface $form_state) {
     parent::save($form, $form_state);
     $form_state->setRedirect('entity.monitoring_multigraph.list');
-    drupal_set_message($this->t('Multigraph settings saved.'));
+    $this->messenger()->addMessage($this->t('Multigraph settings saved.'));
   }
 
   /**

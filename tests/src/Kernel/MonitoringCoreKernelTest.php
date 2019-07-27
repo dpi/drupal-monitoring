@@ -229,7 +229,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
       'link' => '',
       'referer' => '',
       'ip' => '127.0.0.1',
-      'timestamp' => REQUEST_TIME,
+      'timestamp' => \Drupal::time()->getRequestTime(),
     ]);
 
     // Run sensor and test the output.
@@ -247,7 +247,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
         'link' => '',
         'referer' => '',
         'ip' => '127.0.0.1',
-        'timestamp' => REQUEST_TIME,
+        'timestamp' => \Drupal::time()->getRequestTime(),
       ]);
     }
 
@@ -265,7 +265,7 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
         'link' => '',
         'referer' => '',
         'ip' => '127.0.0.1',
-        'timestamp' => REQUEST_TIME,
+        'timestamp' => \Drupal::time()->getRequestTime(),
       ]);
     }
 
@@ -747,10 +747,10 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
 
     // Make all system watchdog messages older than the configured time period.
     \Drupal::database()->update('watchdog')
-      ->fields(array('timestamp' => REQUEST_TIME - 20))
+      ->fields(array('timestamp' => \Drupal::time()->getRequestTime() - 20))
       ->condition('type', 'system')
       ->execute();
-    $count_latest = \Drupal::database()->query('SELECT COUNT(*) FROM {watchdog} WHERE timestamp > :timestamp', array(':timestamp' => REQUEST_TIME - 10))->fetchField();
+    $count_latest = \Drupal::database()->query('SELECT COUNT(*) FROM {watchdog} WHERE timestamp > :timestamp', array(':timestamp' => \Drupal::time()->getRequestTime() - 10))->fetchField();
     $result = $this->runSensor('watchdog_aggregate_test');
     $this->assertEqual($result->getValue(), $count_latest);
 

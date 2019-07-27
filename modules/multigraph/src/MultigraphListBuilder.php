@@ -32,7 +32,7 @@ class MultigraphListBuilder extends ConfigEntityListBuilder {
    */
   public function buildRow(EntityInterface $entity) {
     /** @var \Drupal\monitoring_multigraph\Entity\Multigraph $entity */
-    $row['label'] = $this->getLabel($entity);
+    $row['label'] = $entity->label();
     $row['description'] = $entity->getDescription();
 
     // Format sensors list.

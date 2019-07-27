@@ -3,7 +3,8 @@
 namespace Drupal\Tests\monitoring_multigraph\Unit\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring_multigraph\Entity\Multigraph;
 use Drupal\Tests\UnitTestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -18,18 +19,18 @@ class MultigraphUnitTest extends UnitTestCase {
   /**
    * A mock entity manager.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface|\PHPUnit_Framework_MockObject_MockObject
    */
-  protected $entityManager;
+  protected $entityTypeManager;
 
   /**
    * {@inheritdoc}
    */
   protected function setUp() {
-    $this->entityManager = $this->getMock(EntityManagerInterface::class);
+    $this->entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
 
     $container = new ContainerBuilder();
-    $container->set('entity.manager', $this->entityManager);
+    $container->set('entity_type.manager', $this->entityTypeManager);
     \Drupal::setContainer($container);
   }
 
@@ -53,7 +54,7 @@ class MultigraphUnitTest extends UnitTestCase {
     ), 'monitoring_multigraph');
 
     // Mock whatever is used in calculateDependencies().
-    $sensor_storage = $this->getMock(ConfigEntityStorageInterface::class);
+    $sensor_storage = $this->createMock(ConfigEntityStorageInterface::class);
     $sensor_storage->expects($this->any())
       ->method('load')
       ->willReturnMap(array(
@@ -61,7 +62,7 @@ class MultigraphUnitTest extends UnitTestCase {
         array($sensor2_id, $sensor2),
       ));
 
-    $this->entityManager->expects($this->any())
+    $this->entityTypeManager->expects($this->any())
       ->method('getStorage')
       ->with('monitoring_sensor_config')
       ->willReturn($sensor_storage);
@@ -81,7 +82,9 @@ class MultigraphUnitTest extends UnitTestCase {
    *   The mock sensor object.
    */
   protected function getMockSensor($id) {
-    $sensor1 = $this->getMock('\Drupal\monitoring\Entity\SensorConfig', array(), array(array(), 'monitoring_sensor_config'));
+    $sensor1 = $this->getMockBuilder(SensorConfig::class)
+      ->setConstructorArgs([[], 'monitoring_sensor_config'])
+      ->getMock();
     $sensor1->expects($this->any())
       ->method('getConfigDependencyName')
       ->willReturn("sensor.$id");

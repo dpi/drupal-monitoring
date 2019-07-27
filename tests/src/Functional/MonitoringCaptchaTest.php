@@ -44,7 +44,7 @@ class MonitoringCaptchaTest extends MonitoringTestBase {
     $this->assertEqual(\Drupal::database()->query('SELECT COUNT (*) FROM {captcha_sessions}')->fetchField(), 0);
     // Try to log in, with invalid captcha answer which should fail.
     $edit = array(
-      'name' => $user->getUsername(),
+      'name' => $user->getAccountName(),
       'pass' => $user->pass_raw,
       'captcha_response' => '?',
     );

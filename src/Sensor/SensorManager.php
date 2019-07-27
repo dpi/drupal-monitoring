@@ -11,6 +11,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -52,6 +53,13 @@ class SensorManager extends DefaultPluginManager {
   protected $entityTypeManager;
 
   /**
+   * The messenger.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
    * Constructs a sensor manager.
    *
    * @param \Traversable $namespaces
@@ -62,12 +70,13 @@ class SensorManager extends DefaultPluginManager {
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler to invoke the alter hook with.
    */
-  function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config, EntityTypeManagerInterface $entity_type_manager) {
+  function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, ConfigFactoryInterface $config, EntityTypeManagerInterface $entity_type_manager, MessengerInterface $messenger) {
     parent::__construct('Plugin/monitoring/SensorPlugin', $namespaces, $module_handler, '\Drupal\monitoring\SensorPlugin\SensorPluginInterface', 'Drupal\monitoring\Annotation\SensorPlugin');
     $this->alterInfo('monitoring_sensor_plugins');
     $this->setCacheBackend($cache_backend, 'monitoring_sensor_plugins');
     $this->config = $config;
     $this->entityTypeManager = $entity_type_manager;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -246,7 +255,7 @@ class SensorManager extends DefaultPluginManager {
     foreach ($this->moduleHandler->getImplementations('requirements') as $module) {
       if(!$storage->load('core_requirements_' . $module)) {
         if (initialize_requirements_sensors($module)) {
-          drupal_set_message($this->t('The sensor @sensor has been added.', ['@sensor' => $storage->load('core_requirements_' . $module)->label()]));
+          $this->messenger->addMessage($this->t('The sensor @sensor has been added.', ['@sensor' => $storage->load('core_requirements_' . $module)->label()]));
           $updated_sensors = TRUE;
         }
       }
@@ -261,7 +270,7 @@ class SensorManager extends DefaultPluginManager {
     foreach ($storage->loadMultiple($sensor_ids) as $sensor) {
       $module = $sensor->getSetting('module');
       if (!$this->moduleHandler->implementsHook($module, 'requirements')) {
-        drupal_set_message($this->t('The sensor @sensor has been removed.', ['@sensor' => $sensor->label()]));
+        $this->messenger->addMessage($this->t('The sensor @sensor has been removed.', ['@sensor' => $sensor->label()]));
         $sensor->delete();
         $updated_sensors = TRUE;
 
@@ -294,7 +303,7 @@ class SensorManager extends DefaultPluginManager {
             foreach ($config_storages as $config_storage) {
               if ($data = $config_storage->read('monitoring.sensor_config.' . $config_id)) {
                 $storage->create($data)->trustData()->save();
-                drupal_set_message($this->t('The sensor @sensor has been created.', ['@sensor' => (string) $sensor_definition['label']]));
+                $this->messenger->addMessage($this->t('The sensor @sensor has been created.', ['@sensor' => (string) $sensor_definition['label']]));
                 $updated_sensors = TRUE;
                 break;
               }
@@ -306,7 +315,7 @@ class SensorManager extends DefaultPluginManager {
 
     // Set message to inform the user that there were no updated sensors.
     if ($updated_sensors == FALSE) {
-      drupal_set_message($this->t('No changes were made.'));
+      $this->messenger->addMessage($this->t('No changes were made.'));
     }
   }
 

@@ -50,10 +50,10 @@ class TemporaryFilesController extends ControllerBase {
     $file->setPermanent();
     $file->save();
     $this->sensorRunner->resetCache([$monitoring_sensor_config->id()]);
-    drupal_set_message(t('File @file is now permanent.', [
+    $this->messenger()->addMessage(t('File @file is now permanent.', [
       '@file' => $file->getFilename(),
     ]), 'status');
-    $url = $monitoring_sensor_config->urlInfo('details-form');
+    $url = $monitoring_sensor_config->toUrl('details-form');
     return $this->redirect($url->getRouteName(), $url->getRouteParameters());
   }
 }

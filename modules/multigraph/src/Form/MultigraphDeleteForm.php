@@ -38,7 +38,7 @@ class MultigraphDeleteForm extends EntityConfirmFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->entity->delete();
-    drupal_set_message($this->t(
+    $this->messenger()->addMessage($this->t(
       'The %label multigraph has been deleted.',
       array('%label' => $this->entity->label())
     ));

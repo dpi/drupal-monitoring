@@ -13,7 +13,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Route;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
-use Drupal\monitoring_multigraph\Entity\Multigraph;
 
 /**
  * Provides a resource for monitoring multigraphs.
@@ -69,7 +68,7 @@ class MonitoringMultigraphResource extends ResourceBase {
 
     if ($id) {
       /** @var \Drupal\monitoring_multigraph\Entity\Multigraph $multigraph */
-      $multigraph = \Drupal::entityManager()
+      $multigraph = \Drupal::entityTypeManager()
         ->getStorage('monitoring_multigraph')
         ->load($id);
       if ($multigraph == NULL) {
@@ -85,7 +84,7 @@ class MonitoringMultigraphResource extends ResourceBase {
     }
 
     $list = array();
-    $multigraphs = \Drupal::entityManager()
+    $multigraphs = \Drupal::entityTypeManager()
       ->getStorage('monitoring_multigraph')
       ->loadMultiple();
     $cacheable_metadata = new CacheableMetadata();

@@ -4,12 +4,14 @@ namespace Drupal\Tests\monitoring\Functional;
 
 use Behat\Mink\Element\NodeElement;
 use Drupal\Component\Render\FormattableMarkup;
-use Drupal\Component\Utility\SafeMarkup;
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\file\Entity\File;
 use Drupal\monitoring\Entity\SensorConfig;
+use Drupal\taxonomy\Entity\Term;
+use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\user\Entity\User;
 use Drupal\user\RoleInterface;
 
@@ -425,7 +427,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
       'message' => 'Login attempt failed from %ip.',
       'variables' => serialize(['%ip' => '127.0.0.1']),
       'location' => 'http://example.com/user/login',
-      'timestamp' => REQUEST_TIME,
+      'timestamp' => \Drupal::time()->getRequestTime(),
     ))->execute();
 
     // Check the verbose sensor result.
@@ -555,7 +557,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     // One node should not meet the time_interval condition.
     $node = $this->drupalCreateNode(array('type' => $type2->id()));
     \Drupal::database()->update('node_field_data')
-      ->fields(array('created' => REQUEST_TIME - ($sensor_config->getTimeIntervalValue() + 10)))
+      ->fields(array('created' => \Drupal::time()->getRequestTime() - ($sensor_config->getTimeIntervalValue() + 10)))
       ->condition('nid', $node->id())
       ->execute();
 
@@ -580,7 +582,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     // Test support for configurable fields, create a taxonomy reference field.
     $vocabulary = $this->createVocabulary();
 
-    entity_create('field_storage_config', array(
+    FieldStorageConfig::create(array(
       'field_name' => 'term_reference',
       'cardinality' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
       'entity_type' => 'node',
@@ -591,7 +593,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
       ),
     ))->save();
 
-    entity_create('field_config', array(
+    FieldConfig::create(array(
       'label' => 'Term reference',
       'field_name' => 'term_reference',
       'entity_type' => 'node',
@@ -600,7 +602,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
       'required' => FALSE,
     ))->save();
 
-    entity_create('field_storage_config', array(
+    FieldStorageConfig::create(array(
       'field_name' => 'term_reference2',
       'cardinality' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
       'entity_type' => 'node',
@@ -611,7 +613,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
       ),
     ))->save();
 
-    entity_create('field_config', array(
+    FieldConfig::create(array(
       'label' => 'Term reference 2',
       'field_name' => 'term_reference2',
       'entity_type' => 'node',
@@ -626,14 +628,14 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
 
     // Create node that only references the first term.
     $node1 = $this->drupalCreateNode(array(
-      'created' => REQUEST_TIME,
+      'created' => \Drupal::time()->getRequestTime(),
       'type' => $type2->id(),
       'term_reference' => array(array('target_id' => $term1->id())),
     ));
 
     // Create node that only references both terms.
     $node2 = $this->drupalCreateNode(array(
-      'created' => REQUEST_TIME,
+      'created' => \Drupal::time()->getRequestTime(),
       'type' => $type2->id(),
       'term_reference' => array(
         array('target_id' => $term1->id()),
@@ -643,7 +645,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
 
     // Create a third node that references both terms but in different fields.
     $node3 = $this->drupalCreateNode(array(
-      'created' => REQUEST_TIME,
+      'created' => \Drupal::time()->getRequestTime(),
       'type' => $type2->id(),
       'term_reference' => array(array('target_id' => $term1->id())),
       'term_reference2' => array(array('target_id' => $term2->id())),
@@ -733,7 +735,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     ]);
     $this->drupalLogin($test_user);
 
-    $event_time = REQUEST_TIME;
+    $event_time = \Drupal::time()->getRequestTime();
 
     // Insert three page not found events.
     Database::getConnection('default')->insert('watchdog')->fields([
@@ -892,8 +894,8 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
    */
   protected function createVocabulary() {
     // Create a vocabulary.
-    $vocabulary = entity_create('taxonomy_vocabulary', array(
-      'vid' => Unicode::strtolower($this->randomMachineName()),
+    $vocabulary = Vocabulary::create(array(
+      'vid' => mb_strtolower($this->randomMachineName()),
       'name' => $this->randomMachineName(),
       'description' => $this->randomMachineName(),
     ));
@@ -911,7 +913,7 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
    *   Term object.
    */
   protected function createTerm($vocabulary) {
-    $term = entity_create('taxonomy_term', array('vid' => $vocabulary->id()));
+    $term = Term::create(array('vid' => $vocabulary->id()));
     $term->name = $this->randomMachineName();
     $term->description = $this->randomMachineName();
     $term->save();

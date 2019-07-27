@@ -108,7 +108,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
 
     // Apply time interval on field.
     if ($this->getTimeIntervalField() && $this->getTimeIntervalValue()) {
-      $query->condition($this->getTimeIntervalField(), REQUEST_TIME - $this->getTimeIntervalValue(), '>');
+      $query->condition($this->getTimeIntervalField(), \Drupal::time()->getRequestTime() - $this->getTimeIntervalValue(), '>');
     }
 
     return $query;
@@ -145,7 +145,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
     }
     // Apply time interval on field.
     if ($this->getTimeIntervalField() && $this->getTimeIntervalValue()) {
-      $query->condition($this->getTimeIntervalField(), REQUEST_TIME - $this->getTimeIntervalValue(), '>');
+      $query->condition($this->getTimeIntervalField(), \Drupal::time()->getRequestTime() - $this->getTimeIntervalValue(), '>');
     }
 
     // Add key fields.
@@ -631,7 +631,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
 
     $form_state->set('conditions_rows', $form_state->get('conditions_rows') + 1);
 
-    drupal_set_message(t('Condition added.'), 'status');
+    $this->messenger()->addMessage(t('Condition added.'));
   }
 
   /**
@@ -661,7 +661,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
     $form_state->setRebuild();
 
     $form_state->set('fields_rows', $form_state->get('fields_rows') + 1);
-    drupal_set_message(t('Field added.'), 'status');
+    $this->messenger()->addMessage(t('Field added.'));
   }
 
   /**

@@ -46,7 +46,7 @@ class SensorListBuilder extends ConfigEntityListBuilder implements FormInterface
     /** @var \Drupal\monitoring\Entity\SensorConfig $entity */
     $row['category']['data'] = $entity->getCategory();
     $row['category']['class'][] = 'table-filter-category';
-    $row['label']['data'] = $this->getLabel($entity);
+    $row['label']['data'] = $entity->label();
     $row['label']['class'][] = 'table-filter-text-source';
 
     $plugin_definition = monitoring_sensor_manager()->getSensorConfigByName($entity->id())->getPlugin()->getPluginDefinition();
@@ -215,7 +215,7 @@ class SensorListBuilder extends ConfigEntityListBuilder implements FormInterface
       }
       $sensor->save();
     }
-    drupal_set_message($this->t('Configuration has been saved.'));
+    $this->messenger()->addMessage($this->t('Configuration has been saved.'));
   }
 
 }

@@ -7,6 +7,7 @@
 namespace Drupal\monitoring\Plugin\monitoring\SensorPlugin;
 
 use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\monitoring\SensorPlugin\ExtendedInfoSensorPluginInterface;
 
@@ -43,7 +44,7 @@ class WatchdogAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin impl
       // Replace the message for every row.
       foreach ($output['verbose_sensor_result']['#rows'] as $delta => $row) {
         // Link the watchdog id to the dblog.
-        $output['verbose_sensor_result']['#rows'][$delta]['wid'] = \Drupal::l($row['wid'], Url::fromUserInput('/admin/reports/dblog/event/' . $row['wid']));
+        $output['verbose_sensor_result']['#rows'][$delta]['wid'] = Link::fromTextAndUrl($row['wid'], Url::fromUserInput('/admin/reports/dblog/event/' . $row['wid']))->toString();
 
         // Replace variables in message.
         $output['verbose_sensor_result']['#rows'][$delta]['message'] = new FormattableMarkup($row['message'], unserialize($row['variables']));

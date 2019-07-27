@@ -7,7 +7,6 @@
 
 namespace Drupal\monitoring\Element;
 
-use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Element\FormElement;
 
 /**

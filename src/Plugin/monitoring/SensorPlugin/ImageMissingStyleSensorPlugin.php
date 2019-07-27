@@ -7,8 +7,8 @@
 namespace Drupal\monitoring\Plugin\monitoring\SensorPlugin;
 
 use Drupal\Core\Link;
-use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Url;
+use Drupal\file\Entity\File;
 use Drupal\monitoring\Result\SensorResultInterface;
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
@@ -106,7 +106,7 @@ class ImageMissingStyleSensorPlugin extends WatchdogAggregatorSensorPlugin {
           ->condition('uri', $variables['%source_image_path'])
           ->execute();
         if (!empty($file)) {
-          $file = file_load(array_shift($file));
+          $file = File::load(array_shift($file));
           /** @var \Drupal\file\FileUsage\FileUsageInterface $usage */
           $list_usages = \Drupal::service('file.usage')->listUsage($file);
           $usages = 0;

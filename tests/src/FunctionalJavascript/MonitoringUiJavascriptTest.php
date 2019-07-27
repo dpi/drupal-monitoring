@@ -5,7 +5,7 @@ namespace Drupal\Tests\monitoring\FunctionalJavascript;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\file\Entity\File;
 use Drupal\FunctionalJavascriptTests\DrupalSelenium2Driver;
-use Drupal\FunctionalJavascriptTests\JavascriptTestBase;
+use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\Tests\monitoring\Functional\MonitoringTestTrait;
 
@@ -14,7 +14,7 @@ use Drupal\Tests\monitoring\Functional\MonitoringTestTrait;
  *
  * @group monitoring
  */
-class MonitoringUiJavascriptTest extends JavascriptTestBase {
+class MonitoringUiJavascriptTest extends WebDriverTestBase {
 
   use MonitoringTestTrait;
 
@@ -133,7 +133,7 @@ class MonitoringUiJavascriptTest extends JavascriptTestBase {
     }
 
     // Create a file to test.
-    $file_path = file_default_scheme() . '://test';
+    $file_path = 'public://test';
     $contents = "some content here!!.";
     file_put_contents($file_path, $contents);
 

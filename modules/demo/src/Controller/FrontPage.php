@@ -7,6 +7,7 @@
 namespace Drupal\monitoring_demo\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Link;
 use Drupal\Core\Url;
 
 /**
@@ -21,13 +22,13 @@ class FrontPage extends ControllerBase {
       ),
       'report' => array(
         '#type' => 'item',
-        '#title' => \Drupal::l(t('Monitoring sensors overview'), Url::fromRoute('monitoring.sensor_list')),
+        '#title' => Link::fromTextAndUrl(t('Monitoring sensors overview'), Url::fromRoute('monitoring.sensor_list'))->toString(),
         '#description' => t('Basic dashboard showing the sensor list with their status and information.'),
         '#description_display' => 'after',
       ),
       'configuration' => array(
         '#type' => 'item',
-        '#title' =>\Drupal::l(t('Monitoring sensors settings'), Url::fromRoute('monitoring.sensors_overview_settings')),
+        '#title' =>Link::fromTextAndUrl(t('Monitoring sensors settings'), Url::fromRoute('monitoring.sensors_overview_settings'))->toString(),
         '#description' => t('Monitoring sensors configuration page. See this page for the complete list of the available sensors.'),
         '#description_display' => 'after',
       ),
@@ -54,8 +55,8 @@ class FrontPage extends ControllerBase {
           '#theme' => 'item_list',
           '#items' => array(
             t('<a href="@url">Uninstall</a> the Database logging module what will make all the watchdog related sensors disappear.',
-              array('@url' => \Drupal::url('system.modules_uninstall'))),
-            t('Visit the <a href="@url">sensors overview page</a> to see the sensor reporting disappeared sensors.', array('@url' => \Drupal::url('monitoring.sensor_list'))),
+              array('@url' => Url::fromRoute('system.modules_uninstall')->toString())),
+            t('Visit the <a href="@url">sensors overview page</a> to see the sensor reporting disappeared sensors.', array('@url' => Url::fromRoute('monitoring.sensor_list')->toString())),
           )
         ),
       ),

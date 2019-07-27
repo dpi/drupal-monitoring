@@ -42,7 +42,7 @@ class SensorDeleteForm extends EntityConfirmFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->entity->delete();
-    drupal_set_message(t('Sensor %label has been deleted.', array('%label' => $this->entity->label())));
+    $this->messenger()->addMessage(t('Sensor %label has been deleted.', array('%label' => $this->entity->label())));
     $form_state->setRedirectUrl($this->getCancelUrl());
   }
 }

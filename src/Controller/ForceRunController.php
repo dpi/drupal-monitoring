@@ -4,11 +4,9 @@ namespace Drupal\monitoring\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\monitoring\Entity\SensorConfig;
-use Drupal\monitoring\Sensor\NonExistingSensorException;
 use Drupal\monitoring\Sensor\SensorManager;
 use Drupal\monitoring\SensorRunner;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class ForceRunController extends ControllerBase {
 
@@ -56,7 +54,7 @@ class ForceRunController extends ControllerBase {
    */
   public function forceRunAll() {
     $this->sensorRunner->resetCache();
-    drupal_set_message($this->t('Force run of all cached sensors executed.'));
+    $this->messenger()->addMessage($this->t('Force run of all cached sensors executed.'));
     return $this->redirect('monitoring.sensor_list');
   }
 
@@ -70,7 +68,7 @@ class ForceRunController extends ControllerBase {
   public function forceRunSensor(SensorConfig $monitoring_sensor_config) {
 
     $this->sensorRunner->resetCache(array($monitoring_sensor_config->id()));
-    drupal_set_message($this->t('Force run of the sensor @name executed.', array('@name' => $monitoring_sensor_config->getLabel())));
+    $this->messenger()->addMessage($this->t('Force run of the sensor @name executed.', array('@name' => $monitoring_sensor_config->getLabel())));
     return $this->redirect('monitoring.sensor_list');
   }
 }

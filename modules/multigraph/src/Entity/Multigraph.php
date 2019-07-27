@@ -6,9 +6,7 @@
 
 namespace Drupal\monitoring_multigraph\Entity;
 
-use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
-use Drupal\Core\Entity\Entity;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\monitoring_multigraph\MultigraphInterface;
@@ -179,7 +177,7 @@ class Multigraph extends ConfigEntityBase implements MultigraphInterface {
    *   (optional) Custom sensor label for this Multigraph.
    */
   protected function addSensorEntity($name, $label = NULL) {
-    $sensor = \Drupal::entityManager()->getStorage('monitoring_sensor_config')->load($name);
+    $sensor = \Drupal::entityTypeManager()->getStorage('monitoring_sensor_config')->load($name);
     if (!empty($label)) {
       $sensor->label = $label;
     }

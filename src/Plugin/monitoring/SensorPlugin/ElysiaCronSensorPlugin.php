@@ -36,12 +36,12 @@ class ElysiaCronSensorPlugin extends SensorPluginBase {
 
     // In case we are querying for last_run, the value is the seconds ago.
     if ($this->sensorConfig->getSetting('metric') == 'last_run') {
-      $value = REQUEST_TIME - $value;
+      $value = \Drupal::time()->getRequestTime() - $value;
       $result->addStatusMessage('@time ago', array('@time' => \Drupal::service('date.formatter')->formatInterval($value)));
     }
     else {
       // metric last_execution_time
-      $result->addStatusMessage('at @time', array('@time' => format_date($value)));
+      $result->addStatusMessage('at @time', array('@time' => \Drupal::service('date.formatter')->format($value)));
     }
 
     $result->setValue($value);

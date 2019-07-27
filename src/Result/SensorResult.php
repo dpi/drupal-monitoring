@@ -3,7 +3,6 @@
 namespace Drupal\monitoring\Result;
 
 use Drupal\Component\Render\FormattableMarkup;
-use Drupal\Component\Utility\Unicode;
 use Drupal\monitoring\Entity\SensorResultDataInterface;
 use Drupal\monitoring\Sensor\SensorCompilationException;
 use Drupal\monitoring\Entity\SensorConfig;
@@ -92,7 +91,7 @@ class SensorResult implements SensorResultInterface {
       'sensor_expected_value' => NULL,
       'sensor_value' => NULL,
       'execution_time' => 0,
-      'timestamp' => REQUEST_TIME,
+      'timestamp' => \Drupal::time()->getRequestTime(),
     );
   }
 
@@ -330,7 +329,7 @@ class SensorResult implements SensorResultInterface {
         throw new SensorCompilationException(new FormattableMarkup('Invalid value type @type', array('@type' => $value_type)));
       }
       elseif (empty($value_types[$value_type]['formatter_callback']) && $label = $this->getSensorConfig()->getValueLabel()) {
-        $label = Unicode::strtolower($label);
+        $label = mb_strtolower($label);
         return new FormattableMarkup('@value @label', array('@value' => $value, '@label' => $label));
       }
       elseif (isset($value_types[$value_type]['formatter_callback']) && !function_exists($value_types[$value_type]['formatter_callback'])) {
@@ -349,7 +348,7 @@ class SensorResult implements SensorResultInterface {
     if ($label = $this->getSensorConfig()->getValueLabel()) {
       // @todo This assumption will no longer work when non-english messages
       // supported.
-      $label = Unicode::strtolower($label);
+      $label = mb_strtolower($label);
       return new FormattableMarkup('@value @label', array('@value' => $value, '@label' => $label));
     }
 

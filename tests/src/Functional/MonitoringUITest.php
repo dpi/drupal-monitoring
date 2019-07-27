@@ -5,6 +5,7 @@ namespace Drupal\Tests\monitoring\Functional;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Serialization\Json;
 use Drupal\monitoring\Entity\SensorConfig;
+use Drupal\node\NodeInterface;
 use Drupal\user\Entity\User;
 
 /**
@@ -170,7 +171,7 @@ class MonitoringUITest extends MonitoringTestBase {
     \Drupal::cache('default')->set(
       $cid,
       $cache->data,
-      REQUEST_TIME + 3600,
+      \Drupal::time()->getRequestTime() + 3600,
       array('monitoring_sensor_result')
     );
 
@@ -214,7 +215,7 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->assertRaw('See Protecting against HTTP HOST Header attacks');
     $this->clickLink('test_sensor');
     $this->assertResponse(200);
-    $this->assertUrl(SensorConfig::load('test_sensor')->urlInfo('details-form'));
+    $this->assertUrl(SensorConfig::load('test_sensor')->toUrl('details-form'));
   }
 
   /**
@@ -227,7 +228,7 @@ class MonitoringUITest extends MonitoringTestBase {
     $page = $this->getSession()->getPage();
     $assert_session = $this->assertSession();
 
-    $this->drupalCreateNode(array('promote' => NODE_PROMOTED));
+    $this->drupalCreateNode(array('promote' => NodeInterface::PROMOTED));
 
     $sensor_config = SensorConfig::load('entity_aggregate_test');
     $this->drupalGet('admin/reports/monitoring/sensors/entity_aggregate_test');

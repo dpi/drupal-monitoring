@@ -287,7 +287,7 @@ class SensorRunner {
         $this->cache->set(
           $this->getSensorCid($result->getSensorId()),
           $data,
-          REQUEST_TIME + $definition->getCachingTime(),
+          \Drupal::time()->getRequestTime() + $definition->getCachingTime(),
           array('monitoring_sensor_result')
         );
       }

@@ -7,11 +7,12 @@
 namespace Drupal\monitoring\Plugin\monitoring\SensorPlugin;
 
 use Drupal\Component\Render\FormattableMarkup;
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\HtmlEscapedText;
 use Drupal\Core\Database\Database;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\DependencyTrait;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Entity\Query\QueryAggregateInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -47,11 +48,11 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
   protected $aggregateField;
 
   /**
-   * Local variable to store \Drupal::entityManger().
+   * Local variable to store \Drupal::entityTypeManger().
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $entityManager;
+  protected $entityTypeManager;
 
   /**
    * Allows plugins to control if the entity type can be configured.
@@ -61,16 +62,23 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
   protected $configurableEntityType = TRUE;
 
   /**
+   * The entity field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
+
+  /**
    * Builds the entity aggregate query.
    *
    * @return \Drupal\Core\Entity\Query\QueryAggregateInterface
    *   The entity query object.
    */
   protected function getEntityQueryAggregate() {
-    $entity_info = $this->entityManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);
+    $entity_info = $this->entityTypeManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);
 
     // Get aggregate query for the entity type.
-    $query = $this->entityManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getAggregateQuery();
+    $query = $this->entityTypeManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getAggregateQuery();
     $this->aggregateField = $entity_info->getKey('id');
 
     $this->addAggregate($query);
@@ -85,7 +93,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
 
     // Apply time interval on field.
     if ($this->getTimeIntervalField() && $this->getTimeIntervalValue()) {
-      $query->condition($this->getTimeIntervalField(), REQUEST_TIME - $this->getTimeIntervalValue(), '>');
+      $query->condition($this->getTimeIntervalField(), \Drupal::time()->getRequestTime() - $this->getTimeIntervalValue(), '>');
     }
 
     return $query;
@@ -102,10 +110,10 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
    * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\ContentEntityAggregatorSensorPlugin::getEntityQueryAggregate()
    */
   protected function getEntityQuery() {
-    $entity_info = $this->entityManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);
+    $entity_info = $this->entityTypeManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);
 
     // Get query for the entity type.
-    $query = $this->entityManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getQuery();
+    $query = $this->entityTypeManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getQuery();
     // Add conditions.
     foreach ($this->getConditions() as $condition) {
       if (empty($condition['field'])) {
@@ -116,7 +124,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
 
     // Apply time interval on field.
     if ($this->getTimeIntervalField() && $this->getTimeIntervalValue()) {
-      $query->condition($this->getTimeIntervalField(), REQUEST_TIME - $this->getTimeIntervalValue(), '>');
+      $query->condition($this->getTimeIntervalField(), \Drupal::time()->getRequestTime() - $this->getTimeIntervalValue(), '>');
     }
 
     // Order by most recent or id.
@@ -133,9 +141,10 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
   /**
    * {@inheritdoc}
    */
-  public function __construct(SensorConfig $sensor_config, $plugin_id, $plugin_definition, EntityManagerInterface $entityManager) {
+  public function __construct(SensorConfig $sensor_config, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager) {
     parent::__construct($sensor_config, $plugin_id, $plugin_definition);
-    $this->entityManager = $entityManager;
+    $this->entityTypeManager = $entity_type_manager;
+    $this->entityFieldManager = $entity_field_manager;
   }
 
   /**
@@ -146,7 +155,8 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
       $sensor_config,
       $plugin_id,
       $plugin_definition,
-      $container->get('entity.manager')
+      $container->get('entity_type.manager'),
+      $container->get('entity_field.manager')
     );
   }
 
@@ -168,7 +178,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
   public function runSensor(SensorResultInterface $result) {
     $query_result = $this->getEntityQueryAggregate()->execute();
     $entity_type = $this->sensorConfig->getSetting('entity_type');
-    $entity_info = $this->entityManager->getDefinition($entity_type);
+    $entity_info = $this->entityTypeManager->getDefinition($entity_type);
 
     if (isset($query_result[0][$entity_info->getKey('id') . '_count'])) {
       $records_count = $query_result[0][$entity_info->getKey('id') . '_count'];
@@ -216,7 +226,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
 
     // Load entities.
     $entity_type_id = $this->sensorConfig->getSetting('entity_type');;
-    $entities = $this->entityManager
+    $entities = $this->entityTypeManager
       ->getStorage($entity_type_id)
       ->loadMultiple($entity_ids);
 
@@ -239,7 +249,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
             break;
 
           case 'label':
-            $row[] = $entity->hasLinkTemplate('canonical') ? $entity->link() : $entity->label();
+            $row[] = $entity->hasLinkTemplate('canonical') ? $entity->toLink() : $entity->label();
             break;
 
           default:
@@ -257,11 +267,11 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
                 else {
                   // Fall back to the main property.
                   $property = $entity->getFieldDefinition($field)->getFieldStorageDefinition()->getMainPropertyName();
-                  $row[] = SafeMarkup::checkPlain($entity->$field->$property);
+                  $row[] = new HtmlEscapedText($entity->$field->$property);
                 }
               } catch (\Exception $e) {
                 // Catch any exception and display as an error.
-                drupal_set_message(t('Error while trying to display %field: @error', ['%field' => $field, '@error' => $e->getMessage()]), 'error');
+                $this->messenger()->addError(t('Error while trying to display %field: @error', ['%field' => $field, '@error' => $e->getMessage()]));
                 $row[] = '';
               }
             }
@@ -301,7 +311,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
     if (!$entity_type_id) {
       throw new \Exception(new FormattableMarkup('Sensor @id is missing the required entity_type setting.', array('@id' => $this->id())));
     }
-    $entity_type = $this->entityManager->getDefinition($this->sensorConfig->getSetting('entity_type'));
+    $entity_type = $this->entityTypeManager->getDefinition($this->sensorConfig->getSetting('entity_type'));
     $this->addDependency('module', $entity_type->getProvider());
     return $this->dependencies;
   }
@@ -312,12 +322,10 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
     $settings = $this->sensorConfig->getSettings();
-    $entity_types = $this->entityManager->getEntityTypeLabels();
     $options = [];
-    foreach ($entity_types as $id => $label) {
-      $class = $this->entityManager->getDefinition($id)->getClass();
-      if (is_subclass_of($class, '\Drupal\Core\Entity\FieldableEntityInterface')) {
-        $options[$id] = $label;
+    foreach ($this->entityTypeManager->getDefinitions() as $id => $entity_type) {
+      if ($entity_type->entityClassImplements(FieldableEntityInterface::class)) {
+        $options[$id] = $entity_type->getLabel();
       };
     }
 
@@ -449,8 +457,8 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
       '#suffix' => '</div>',
       '#open' => TRUE,
     );
-    $entity_type = $this->entityManager->getDefinition($this->sensorConfig->getSetting('entity_type'));
-    $available_fields = array_merge(['id', 'label'], array_keys($this->entityManager->getBaseFieldDefinitions($entity_type->id())));
+    $entity_type = $this->entityTypeManager->getDefinition($this->sensorConfig->getSetting('entity_type'));
+    $available_fields = array_merge(['id', 'label'], array_keys($this->entityFieldManager->getBaseFieldDefinitions($entity_type->id())));
     sort($available_fields);
     $form['verbose_fields']['#description'] = t('Available Fields for entity type %type: %fields.', [
       '%type' => $entity_type->getLabel(),
@@ -544,7 +552,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
 
     $form_state->set('conditions_rows', $form_state->get('conditions_rows') + 1);
 
-    drupal_set_message(t('Condition added.'), 'status');
+    $this->messenger()->addMessage(t('Condition added.'));
   }
 
   /**
@@ -574,7 +582,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
     $form_state->setRebuild();
 
     $form_state->set('fields_rows', $form_state->get('fields_rows') + 1);
-    drupal_set_message(t('Field added.'), 'status');
+    $this->messenger()->addMessage(t('Field added.'));
   }
 
   /**
@@ -591,7 +599,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
     $entity_type_id = $form_state->getValue(array('settings', 'entity_type'));
     if (!empty($field_name) && !empty($entity_type_id)) {
       // @todo instead of validate, switch to a form select.
-      $entity_info = $this->entityManager->getFieldStorageDefinitions($entity_type_id);
+      $entity_info = $this->entityFieldManager->getFieldStorageDefinitions($entity_type_id);
       $data_type = NULL;
       if (!empty($entity_info[$field_name])) {
         $data_type = $entity_info[$field_name]->getPropertyDefinition('value')->getDataType();

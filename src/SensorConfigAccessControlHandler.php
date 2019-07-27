@@ -31,7 +31,7 @@ class SensorConfigAccessControlHandler extends EntityAccessControlHandler {
     }
     if ($operation == 'view') {
       if (!$entity->isEnabled()) {
-        return AccessResult::forbidden()->cacheUntilEntityChanges($entity);
+        return AccessResult::forbidden()->addCacheableDependency($entity);
       }
       elseif ($account->hasPermission('monitoring reports')) {
         return AccessResult::allowed()->cachePerUser();

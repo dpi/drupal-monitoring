@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\monitoring_demo\Tests\MonitoringDemoTest.
- */
 
 namespace Drupal\Tests\monitoring_demo\Functional;
 
@@ -20,19 +16,12 @@ class MonitoringDemoTest extends MonitoringTestBase {
    *
    * @var string[]
    */
-  public static $modules = array('monitoring_demo');
-
-  /**
-   * {@inheritdoc}
-   */
-  function setUp() {
-    parent::setUp();
-  }
+  public static $modules = ['monitoring_demo'];
 
   /**
    * Asserts the demo instructions on the frontpage.
    */
-  protected function testInstalled() {
+  public function testInstalled() {
     $this->drupalGet('');
     $this->assertText('Monitoring');
     $this->assertText(t('Welcome to the Monitoring demo installation.'));

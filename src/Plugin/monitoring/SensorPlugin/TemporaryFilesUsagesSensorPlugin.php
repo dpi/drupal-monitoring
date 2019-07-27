@@ -7,7 +7,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
-use Drupal\monitoring\Result\SensorResultInterface;
 
 /**
  * Monitors temporary files usages.

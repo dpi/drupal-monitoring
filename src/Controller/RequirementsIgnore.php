@@ -62,12 +62,12 @@ class RequirementsIgnore extends ControllerBase {
     if (!in_array($key, $monitoring_sensor_config->settings['exclude_keys'])) {
       $monitoring_sensor_config->settings['exclude_keys'][] = $key;
       $monitoring_sensor_config->save();
-      drupal_set_message($this->t('Added the sensor %name (%key) into the excluded list.', array(
+      $this->messenger()->addMessage($this->t('Added the sensor %name (%key) into the excluded list.', array(
         '%name' => $monitoring_sensor_config->getLabel(),
         '%key' => $key,
       )));
     }
-    $url = $monitoring_sensor_config->urlInfo('details-form');
+    $url = $monitoring_sensor_config->toUrl('details-form');
     return $this->redirect($url->getRouteName(), $url->getRouteParameters());
   }
 
@@ -84,12 +84,12 @@ class RequirementsIgnore extends ControllerBase {
         unset($monitoring_sensor_config->settings['exclude_keys'][$index]);
       }
       $monitoring_sensor_config->save();
-      drupal_set_message($this->t('Removed the sensor %name (%key) from the excluded list.', array(
+      $this->messenger()->addMessage($this->t('Removed the sensor %name (%key) from the excluded list.', array(
         '%name' => $monitoring_sensor_config->getLabel(),
         '%key' => $key,
       )));
     }
-    $url = $monitoring_sensor_config->urlInfo('details-form');
+    $url = $monitoring_sensor_config->toUrl('details-form');
     return $this->redirect($url->getRouteName(), $url->getRouteParameters());
   }
 }

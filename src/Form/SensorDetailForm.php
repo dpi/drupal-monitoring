@@ -129,7 +129,7 @@ class SensorDetailForm extends EntityForm {
       $form['sensor_result']['cached'] = array(
         '#type' => 'item',
         '#title' => $this->t('Cache information'),
-        '#markup' => $this->t('Executed @interval ago, valid for @valid', array('@interval' => \Drupal::service('date.formatter')->formatInterval(REQUEST_TIME - $result->getTimestamp()), '@valid' => \Drupal::service('date.formatter')->formatInterval($sensor_config->getCachingTime()))),
+        '#markup' => $this->t('Executed @interval ago, valid for @valid', array('@interval' => \Drupal::service('date.formatter')->formatInterval(\Drupal::time()->getRequestTime() - $result->getTimestamp()), '@valid' => \Drupal::service('date.formatter')->formatInterval($sensor_config->getCachingTime()))),
       );
 
       $form['sensor_result']['force_run'] = array(
@@ -217,7 +217,7 @@ class SensorDetailForm extends EntityForm {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->sensorRunner->resetCache(array($this->entity->id()));
-    drupal_set_message($this->t('Sensor force run executed.'));
+    $this->messenger()->addMessage($this->t('Sensor force run executed.'));
   }
 
   /**

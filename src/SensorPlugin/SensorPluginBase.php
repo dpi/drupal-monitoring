@@ -7,6 +7,7 @@
 namespace Drupal\monitoring\SensorPlugin;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\monitoring\Entity\SensorConfig;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -20,6 +21,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 abstract class SensorPluginBase implements SensorPluginInterface {
 
   use StringTranslationTrait;
+  use MessengerTrait;
 
   /**
    * Current sensor config object.

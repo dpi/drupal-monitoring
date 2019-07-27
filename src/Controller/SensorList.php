@@ -85,7 +85,7 @@ class SensorList extends ControllerBase {
         }
         /** @var \Drupal\monitoring\Result\SensorResultInterface $sensor_result */
         $sensor_result = $results[$sensor_name];
-        $called_before = REQUEST_TIME - $sensor_result->getTimestamp();
+        $called_before = \Drupal::time()->getRequestTime() - $sensor_result->getTimestamp();
         if ($called_before > $oldest_sensor_age) {
           $oldest_sensor_config = $sensor_config;
           $oldest_sensor_age = $called_before;
@@ -98,7 +98,7 @@ class SensorList extends ControllerBase {
           'class' => array('status'),
         );
 
-        $row['data']['timestamp'] = \Drupal::service('date.formatter')->formatInterval(REQUEST_TIME - $sensor_result->getTimestamp());
+        $row['data']['timestamp'] = \Drupal::service('date.formatter')->formatInterval(\Drupal::time()->getRequestTime() - $sensor_result->getTimestamp());
         $row['data']['execution_time'] = array(
           'data' => $sensor_result->getExecutionTime() . 'ms',
           'class' => array('execution-time'),
@@ -110,19 +110,19 @@ class SensorList extends ControllerBase {
         $links = array();
         $links['details'] = array(
           'title' => t('Details'),
-          'url' => $sensor_config->urlInfo('details-form')
+          'url' => $sensor_config->toUrl('details-form')
         );
 
         // Display a force execution link for any sensor that can be cached.
         if ($sensor_config->getCachingTime() && $this->currentUser()->hasPermission('monitoring force run')) {
           $links['force_execution'] = array(
             'title' => t('Force execution'),
-            'url' => $sensor_config->urlInfo('force-run-sensor')
+            'url' => $sensor_config->toUrl('force-run-sensor')
           );
         }
         $links['edit'] = array(
           'title' => t('Edit'),
-          'url' => $sensor_config->urlInfo('edit-form'),
+          'url' => $sensor_config->toUrl('edit-form'),
           'query' => array('destination' => 'admin/reports/monitoring')
         );
 

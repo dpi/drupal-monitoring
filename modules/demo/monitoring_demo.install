@@ -3,8 +3,12 @@
  * @file
  *   Install file of the monitoring_demo module.
  */
+
 use Drupal\Component\Utility\Random;
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\comment\Entity\Comment;
+use Drupal\node\Entity\Node;
+use Drupal\node\NodeInterface;
 use Drupal\search_api\Entity\Index;
 
 /**
@@ -66,7 +70,7 @@ function monitoring_demo_install() {
       'message' => '@uri',
       'variables' => serialize(['@uri' => 'not/found']),
       'location' => 'http://example.com/not/found',
-      'timestamp' => REQUEST_TIME,
+      'timestamp' => \Drupal::time()->getRequestTime(),
     ))->execute();
   }
 
@@ -91,7 +95,7 @@ function monitoring_demo_install() {
         'link' => '',
         'referer' => 'http://example.com/node/' . $node->id(),
         'ip' => '127.0.0.1',
-        'timestamp' => REQUEST_TIME,
+        'timestamp' => \Drupal::time()->getRequestTime(),
       ]
     );
   }
@@ -124,7 +128,7 @@ function _monitoring_setup_create_comment($settings = array()) {
     'comment_body' => $random->name(40),
   );
 
-  $comment = entity_create('comment', $settings);
+  $comment = Comment::create($settings);
   $comment->save();
   return $comment;
 }
@@ -144,20 +148,12 @@ function _monitoring_setup_create_node($settings = array()) {
   $settings += array(
     'body'      => array(array()),
     'title'     => $random->name(8),
-    'changed'   => REQUEST_TIME,
-    'promote'   => NODE_NOT_PROMOTED,
     'revision'  => 1,
     'log'       => '',
-    'status'    => NODE_PUBLISHED,
-    'sticky'    => NODE_NOT_STICKY,
+    'status'    => NodeInterface::PUBLISHED,
     'type'      => 'page',
     'langcode'  => LanguageInterface::LANGCODE_NOT_SPECIFIED,
   );
-
-  // Use the original node's created time for existing nodes.
-  if (isset($settings['created']) && !isset($settings['date'])) {
-    $settings['date'] = format_date($settings['created'], 'custom', 'Y-m-d H:i:s O');
-  }
 
   // If the node's user uid is not specified manually, use the currently
   // logged in user if available, or else the user running the test.
@@ -172,7 +168,7 @@ function _monitoring_setup_create_node($settings = array()) {
     'format' => filter_default_format(),
   );
 
-  $node = entity_create('node', $settings);
+  $node = Node::create($settings);
   if (!empty($settings['revision'])) {
     $node->setNewRevision();
   }

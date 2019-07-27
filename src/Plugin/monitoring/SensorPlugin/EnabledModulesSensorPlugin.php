@@ -91,7 +91,7 @@ class EnabledModulesSensorPlugin extends SensorPluginBase {
     // Get current list of available modules.
     // @todo find a faster solution? If that happens we can drop caching the
     //   result for 1 hour.
-    $modules = system_rebuild_module_data();
+    $modules = \Drupal::service('extension.list.module')->getList();
 
     uasort($modules, 'system_sort_modules_by_info_name');
 
@@ -175,7 +175,7 @@ class EnabledModulesSensorPlugin extends SensorPluginBase {
     $result->setExpectedValue(0);
     $delta = 0;
 
-    $modules = system_rebuild_module_data();
+    $modules = \Drupal::service('extension.list.module')->getList();
     $names = array();
     foreach ($modules as $name => $module) {
       $names[$name] = $module->info['name'];
@@ -250,6 +250,6 @@ class EnabledModulesSensorPlugin extends SensorPluginBase {
     $entity->settings['modules'] = $default_value;
     $form_state->setRebuild(TRUE);
 
-    drupal_set_message(t('Module list updateed, Save to confirm.'));
+    $this->messenger()->addMessage(t('Module list updateed, Save to confirm.'));
   }
 }

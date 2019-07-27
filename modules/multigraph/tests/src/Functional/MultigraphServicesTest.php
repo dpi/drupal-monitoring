@@ -68,7 +68,7 @@ class MultigraphServicesTest extends MonitoringTestBase {
       $this->assertEqual($response_data[$name]['label'], $multigraph->label());
       $this->assertEqual($response_data[$name]['description'], $multigraph->getDescription());
       $this->assertEqual($response_data[$name]['sensors'], $multigraph->getSensorsRaw());
-      $this->assertEqual($response_data[$name]['uri'], Url::fromRoute('rest.monitoring-multigraph.GET.json' , ['id' => $multigraph->id(), '_format' => 'json'])->setAbsolute()->toString());
+      $this->assertEqual($response_data[$name]['uri'], Url::fromRoute('rest.monitoring-multigraph.GET' , ['id' => $multigraph->id(), '_format' => 'json'])->setAbsolute()->toString());
     }
 
     // Test response for non-existing multigraph.
@@ -85,7 +85,7 @@ class MultigraphServicesTest extends MonitoringTestBase {
     $this->assertEqual($response_data['label'], $multigraph->label());
     $this->assertEqual($response_data['description'], $multigraph->getDescription());
     $this->assertEqual($response_data['sensors'], $multigraph->getSensorsRaw());
-    $this->assertEqual($response_data['uri'], Url::fromRoute('rest.monitoring-multigraph.GET.json' , ['id' => $multigraph->id(), '_format' => 'json'])->setAbsolute()->toString());
+    $this->assertEqual($response_data['uri'], Url::fromRoute('rest.monitoring-multigraph.GET' , ['id' => $multigraph->id(), '_format' => 'json'])->setAbsolute()->toString());
   }
 
 }

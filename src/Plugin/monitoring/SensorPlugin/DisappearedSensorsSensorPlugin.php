@@ -45,7 +45,7 @@ class DisappearedSensorsSensorPlugin extends SensorPluginBase {
       $result = monitoring_sensor_run($this->sensorConfig->id());
     } catch (\Exception $e) {
       // @todo: Figure out why this happens.
-      drupal_set_message($e->getMessage(), 'error');
+      $this->messenger()->addError($e->getMessage());
       return array();
     }
     $form = parent::buildConfigurationForm($form, $form_state);

@@ -6,6 +6,7 @@
 
 namespace Drupal\Tests\monitoring\Kernel;
 
+use Drupal\monitoring\Entity\SensorResultEntity;
 use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\monitoring\Sensor\DisabledSensorException;
 use Drupal\monitoring\Sensor\NonExistingSensorException;
@@ -90,7 +91,7 @@ class MonitoringApiTest extends MonitoringUnitTestBase {
     // Test cached result
     $result_cached = monitoring_sensor_run('test_sensor');
     $this->assertTrue($result_cached->isCached());
-    $this->assertEqual($result_cached->getTimestamp(), REQUEST_TIME);
+    $this->assertEqual($result_cached->getTimestamp(), \Drupal::time()->getRequestTime());
     $this->assertEqual($result_cached->getStatus(), $test_sensor_result_data['sensor_status']);
     $this->assertEqual($result_cached->getMessage(), 'Value 3, ' . $test_sensor_result_data['sensor_message']);
     $this->assertEqual($result_cached->getValue(), $test_sensor_result_data['sensor_value']);
@@ -388,6 +389,6 @@ class MonitoringApiTest extends MonitoringUnitTestBase {
     $result = \Drupal::entityQuery('monitoring_sensor_result')
       ->condition('sensor_name', $sensor_name)
       ->execute();
-    return entity_load_multiple('monitoring_sensor_result', $result);
+    return SensorResultEntity::loadMultiple($result);
   }
 }

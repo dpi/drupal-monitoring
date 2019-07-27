@@ -2,8 +2,6 @@
 
 namespace Drupal\Tests\monitoring\Kernel;
 
-use Drupal\monitoring\Controller\RebuildSensorList;
-use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\ultimate_cron\Entity\CronJob;
 
 /**

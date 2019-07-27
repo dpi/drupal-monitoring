@@ -12,6 +12,7 @@ use Drupal\monitoring\SensorPlugin\SensorPluginBase;
 use Drupal\user\Entity\User;
 use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\user\Entity\Role;
+use Drupal\user\UserInterface;
 
 /**
  * Monitors user data changes.
@@ -111,7 +112,7 @@ class UserIntegritySensorPlugin extends SensorPluginBase implements ExtendedInfo
     }
 
     // Check if self registration is possible.
-    if ((in_array('authenticated', $role_ids)) && $user_register != USER_REGISTER_ADMINISTRATORS_ONLY) {
+    if ((in_array('authenticated', $role_ids)) && $user_register != UserInterface::REGISTER_ADMINISTRATORS_ONLY) {
       $sensor_result->addStatusMessage('Self registration possible.');
       $sensor_result->setStatus(SensorResultInterface::STATUS_CRITICAL);
     }
@@ -226,7 +227,7 @@ class UserIntegritySensorPlugin extends SensorPluginBase implements ExtendedInfo
     foreach ($users as $user) {
       $id = $user->id();
       $processed_users[$id]['id'] = $id;
-      $processed_users[$id]['name'] = $user->getUsername();
+      $processed_users[$id]['name'] = $user->getAccountName();
       $processed_users[$id]['mail'] = $user->getEmail();
       $processed_users[$id]['password'] = hash('sha256', $user->getPassword());
       $processed_users[$id]['changed'] = $user->getChangedTime();
