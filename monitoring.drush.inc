@@ -333,10 +333,10 @@ function monitoring_drush_result_output_sensu($results, $source, $ttl, $handlers
 function monitoring_drush_result_output_json(array $results, $expand = NULL) {
   $json_output = array();
   foreach ($results as $result) {
-    $sensor_name = $result->getSensorName();
-    $json_output[$sensor_name] = $result->toArray();
+    $sensor_id = $result->getSensorId();
+    $json_output[$sensor_id] = $result->toArray();
     if ($expand == 'sensor') {
-      $json_output[$sensor_name]['sensor'] = $result->getSensorConfig()->toArray();
+      $json_output[$sensor_id]['sensor'] = $result->getSensorConfig()->toArray();
     }
   }
   drush_print(Json::encode($json_output));
