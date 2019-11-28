@@ -477,11 +477,6 @@ function monitoring_value_types() {
       'formatter_callback' => 'monitoring_value_label_callback_bool',
       'numeric' => FALSE,
     ),
-    'commerce_currency' => array(
-      'label' => 'Commerce currency',
-      'formatter_callback' => 'monitoring_value_label_callback_commerce_currency',
-      'numeric' => TRUE,
-    ),
   );
 }
 
@@ -511,32 +506,6 @@ function monitoring_value_label_callback_interval(SensorResultInterface $result)
  */
 function monitoring_value_label_callback_bool(SensorResultInterface $result) {
   return $result->getValue() ? 'TRUE' : 'FALSE';
-}
-
-/**
- * Formatter for commerce currency amount value.
- *
- * @param \Drupal\monitoring\Result\SensorResultInterface $result
- *   Result object for which to get the formatted value.
- *
- * @return string
- *   Formatted amount.
- *
- * @see commerce_default_currency()
- * @see commerce_currency_format()
- */
-function monitoring_value_label_callback_commerce_currency(SensorResultInterface $result) {
-  if (\Drupal::moduleHandler()->moduleExists('commerce')) {
-    $currency = $result->getSensorConfig()->getSetting('currency_code');
-    if (empty($currency)) {
-      $currency = commerce_default_currency();
-    }
-    // commerce_currency_format() uses @placeholders and runs the price through
-    // check_plain(), that can cause double encoding, so decode entities again.
-    return html_entity_decode(commerce_currency_format($result->getValue(), $currency, NULL, FALSE), ENT_QUOTES);
-  }
-
-  return $result->getValue();
 }
 
 /*

@@ -353,3 +353,17 @@ monitoring.settings.monitoring_system_memory:
     value:
       type: string
       label: 'Value'
+
+monitoring.settings.commerce_turnover:
+  type: monitoring.settings.entity_aggregator
+  label: 'Commerce total turnover sensor settings'
+  mapping:
+    commerce_order_paid_states:
+      type: sequence
+      label: '"Paid" order states'
+      sequence:
+        type: string
+        label: 'States'
+    commerce_order_currency:
+      type: string
+      label: 'Currency'

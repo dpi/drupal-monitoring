@@ -1,0 +1,16 @@
+{
+    "name": "drupal/monitoring",
+    "description": "Monitoring base.",
+    "type": "drupal-module",
+    "license": "GPL-2.0",
+    "require-dev": {
+        "drupal/simplenews": "~2.0",
+        "drupal/captcha": "~1.0",
+        "drupal/past": "~1.0",
+        "drupal/ultimate_cron": "~2.0",
+        "drupal/search_api": "~1.0",
+        "drupal/search_api_solr": "~3.0",
+        "drupal/redirect": "~1.0",
+        "drupal/commerce": "~2.0"
+    }
+}
