@@ -1,10 +1,13 @@
-id: user_session_logouts
-label: 'User session logouts'
-description: 'User session logouts by Watchdog'
+dependencies:
+  module:
+    - dblog
+id: user_void_failed_logins
+label: 'Failed nonexisting user logins'
+description: 'Failed nonexisting user logins by Watchdog'
 category: 'User activity'
-plugin_id: watchdog_aggregator
+plugin_id: user_void_failed_logins
 value_type: 'number'
-value_label: 'Logouts'
+value_label: 'Login attempts'
 status: TRUE
 caching_time: 3600
 settings:
@@ -15,7 +18,7 @@ settings:
       value: 'user'
     -
       field: 'message'
-      value: 'Session closed for %name.'
+      value: 'Login attempt failed from %ip.'
   verbose_fields:
     - 'wid'
     - 'message'
@@ -24,3 +27,7 @@ settings:
   time_interval_field: 'timestamp'
   time_interval_value: 86400
   history_status: true
+thresholds:
+  type: exceeds
+  warning: 50
+  critical: 120

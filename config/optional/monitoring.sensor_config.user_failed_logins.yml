@@ -1,8 +1,11 @@
-id: user_void_failed_logins
-label: 'Failed nonexisting user logins'
-description: 'Failed nonexisting user logins by Watchdog'
+dependencies:
+  module:
+    - dblog
+id: user_failed_logins
+label: 'Failed user logins'
+description: 'Failed user logins by Watchdog'
 category: 'User activity'
-plugin_id: user_void_failed_logins
+plugin_id: user_failed_logins
 value_type: 'number'
 value_label: 'Login attempts'
 status: TRUE
@@ -15,7 +18,7 @@ settings:
       value: 'user'
     -
       field: 'message'
-      value: 'Login attempt failed from %ip.'
+      value: 'Login attempt failed for %user.'
   verbose_fields:
     - 'wid'
     - 'message'

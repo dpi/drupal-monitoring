@@ -15,6 +15,7 @@ use Drupal\monitoring\Result\SensorResultInterface;
  *   id = "user_void_failed_logins",
  *   label = @Translation("Non Existing User Failed Logins"),
  *   description = @Translation("Monitors non existing user failed login from dblog messages."),
+ *   provider = "dblog",
  *   addable = FALSE
  * )
  *

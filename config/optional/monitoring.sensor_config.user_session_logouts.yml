@@ -1,10 +1,13 @@
-id: user_successful_logins
-label: 'Successful user logins'
-description: 'Successful user logins by Watchdog'
+dependencies:
+  module:
+    - dblog
+id: user_session_logouts
+label: 'User session logouts'
+description: 'User session logouts by Watchdog'
 category: 'User activity'
 plugin_id: watchdog_aggregator
-value_type : 'number'
-value_label: 'Login attempts'
+value_type: 'number'
+value_label: 'Logouts'
 status: TRUE
 caching_time: 3600
 settings:
@@ -15,7 +18,7 @@ settings:
       value: 'user'
     -
       field: 'message'
-      value: 'Session opened for %name.'
+      value: 'Session closed for %name.'
   verbose_fields:
     - 'wid'
     - 'message'

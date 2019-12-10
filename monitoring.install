@@ -109,3 +109,21 @@ function monitoring_update_8101() {
     return 'Created new sensor to monitor used temporary files';
   }
 }
+
+/**
+ * Disable user sensors, if dblog is not installed.
+ */
+function monitoring_update_8102() {
+  if (!\Drupal::moduleHandler()->moduleExists('dblog')) {
+    $sensor_configs = SensorConfig::loadMultiple([
+      'user_failed_logins',
+      'user_session_logouts',
+      'user_successful_logins',
+      'user_void_failed_logins',
+    ]);
+
+    foreach ($sensor_configs as $sensor) {
+      $sensor->delete();
+    }
+  }
+}

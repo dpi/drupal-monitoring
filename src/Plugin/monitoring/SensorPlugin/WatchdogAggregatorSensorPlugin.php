@@ -18,6 +18,7 @@ use Drupal\monitoring\SensorPlugin\ExtendedInfoSensorPluginInterface;
  *   id = "watchdog_aggregator",
  *   label = @Translation("Watchdog Aggregator"),
  *   description = @Translation("Aggregator able to query the watchdog table."),
+ *   provider = "dblog",
  *   addable = TRUE
  * )
  */
