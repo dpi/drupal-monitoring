@@ -790,6 +790,21 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
     $sensor->save();
     $result = $this->runSensor('db_test');
     $this->assertTrue($result->isCritical());
+
+    // Test STARTS_WITH and CONTAINS operators.
+    $sensor_config->settings['conditions'] = array(
+      array('field' => 'type', 'value' => 'other', 'operator' => 'STARTS_WITH'),
+    );
+    $sensor_config->save();
+    $result = $this->runSensor('watchdog_aggregate_test');
+    $this->assertEqual($result->getValue(), 1);
+
+    $sensor_config->settings['conditions'] = array(
+      array('field' => 'type', 'value' => 'test_type', 'operator' => 'CONTAINS'),
+    );
+    $sensor_config->save();
+    $result = $this->runSensor('watchdog_aggregate_test');
+    $this->assertEqual($result->getValue(), 3);
   }
 
   /**

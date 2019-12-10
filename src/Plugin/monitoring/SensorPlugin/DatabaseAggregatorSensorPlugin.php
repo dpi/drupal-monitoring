@@ -12,6 +12,8 @@ use Drupal\monitoring\Result\SensorResultInterface;
 use Drupal\monitoring\SensorPlugin\ExtendedInfoSensorPluginInterface;
 use Drupal\monitoring\SensorPlugin\DatabaseAggregatorSensorPluginBase;
 use Drupal\Core\Entity\DependencyTrait;
+use Drupal\Core\Entity\Query\Sql\Condition;
+use Drupal\Core\Entity\Query\Sql\Tables;
 
 /**
  * Database aggregator able to query a single db table.
@@ -103,6 +105,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
 
     // Add conditions.
     foreach ($this->getConditions() as $condition) {
+      $this->translateCondition($condition, $query);
       $query->condition($condition['field'], $condition['value'], isset($condition['operator']) ? $condition['operator'] : NULL);
     }
 
@@ -125,6 +128,19 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
   }
 
   /**
+   * Translates the string operators to SQL equivalents.
+   *
+   * @param array $condition
+   *   The condition array.
+   * @param \Drupal\Core\Database\Query\SelectInterface $select
+   *   The database select query.
+   */
+  protected function translateCondition(array &$condition, SelectInterface $select) {
+    $tables = new Tables($select);
+    Condition::translateCondition($condition, $select, $tables->isFieldCaseSensitive($condition['field']));
+  }
+
+  /**
    * Builds the  query for verbose output.
    *
    * Similar to the aggregate query, but without aggregation.
@@ -141,6 +157,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
     $query = $database->select($this->sensorConfig->getSetting('table'));
     // Add conditions.
     foreach ($this->getConditions() as $condition) {
+      $this->translateCondition($condition, $query);
       $query->condition($condition['field'], $condition['value'], isset($condition['operator']) ? $condition['operator'] : NULL);
     }
     // Apply time interval on field.
@@ -177,6 +194,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
 
     // Add conditions.
     foreach ($this->getConditions() as $condition) {
+      $this->translateCondition($condition, $query);
       $query->condition($condition['field'], $condition['value'], isset($condition['operator']) ? $condition['operator'] : NULL);
     }
 
@@ -202,6 +220,7 @@ class DatabaseAggregatorSensorPlugin extends DatabaseAggregatorSensorPluginBase 
 
     // Add conditions.
     foreach ($this->getConditions() as $condition) {
+      $this->translateCondition($condition, $query);
       $query->condition($condition['field'], $condition['value'], isset($condition['operator']) ? $condition['operator'] : NULL);
     }
 
