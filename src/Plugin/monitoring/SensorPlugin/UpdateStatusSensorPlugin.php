@@ -89,6 +89,7 @@ class UpdateStatusSensorPlugin extends SensorPluginBase {
     unset($project_data['drupal']);
 
     $updates = [];
+    $important_updates = [];
 
     foreach ($project_data as $info) {
       $status_text = $this->getStatusText($info['status']);
@@ -96,10 +97,37 @@ class UpdateStatusSensorPlugin extends SensorPluginBase {
         $updates[$status_text] = 0;
       }
       $updates[$status_text]++;
+
+      if ($status_text == 'NOT SECURE' || $status_text == 'not supported') {
+        if (!isset($important_updates[$status_text])) {
+          $important_updates[$status_text] = [];
+        }
+        $important_updates[$status_text][] = $info;
+      }
     }
 
     foreach ($updates as $status_text => $count) {
       $result->addStatusMessage($count . ' ' . $status_text);
+    }
+
+    foreach ($important_updates as $status_text => $update_info) {
+      foreach ($update_info as $info) {
+        if ($status_text == 'NOT SECURE') {
+          $result->addStatusMessage('@module (@status, @current => @recommended)', array(
+            '@module' => $info['info']['name'],
+            '@status' => $status_text,
+            '@current' => isset($info['existing_version']) ? $info['existing_version'] : NULL,
+            '@recommended' => isset($info['recommended']) ? $info['recommended'] : NULL,
+          ));
+        }
+        else {
+          $result->addStatusMessage('@module (@status, @current)', array(
+            '@module' => $info['info']['name'],
+            '@status' => $status_text,
+            '@current' => isset($info['existing_version']) ? $info['existing_version'] : NULL,
+          ));
+        }
+      }
     }
   }
 
