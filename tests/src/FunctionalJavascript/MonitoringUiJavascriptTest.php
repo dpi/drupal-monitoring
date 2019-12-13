@@ -33,6 +33,11 @@ class MonitoringUiJavascriptTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp();
     // Create the content type page in the setup as it is used by several tests.
@@ -146,9 +151,6 @@ class MonitoringUiJavascriptTest extends WebDriverTestBase {
       'uid' => 1,
     ]);
     $file->save();
-
-    // Test if the entity was created.
-    $this->assertTrue($file->id());
 
     // Test creation of File entity aggregator sensor.
     $this->drupalGet('admin/config/system/monitoring/sensors/add');

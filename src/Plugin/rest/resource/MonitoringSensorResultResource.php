@@ -129,7 +129,7 @@ class MonitoringSensorResultResource extends ResourceBase {
           return $sensor_runner->runSensors($sensor_config);
         });
         $response = $result[$id]->toArray();
-        $url = Url::fromRoute('rest.monitoring-sensor-result.GET.' . $format, ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
+        $url = Url::fromRoute('rest.monitoring-sensor-result.GET', ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
         $response['uri'] = $url->getGeneratedUrl();
         if ($request->get('expand') == 'sensor') {
           $response['sensor'] = $result[$id]->getSensorConfig()->toArray();
@@ -172,7 +172,7 @@ class MonitoringSensorResultResource extends ResourceBase {
 
       foreach ($results as $id => $result) {
         $list[$id] = $result->toArray();
-        $url = Url::fromRoute('rest.monitoring-sensor-result.GET.' . $format, ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
+        $url = Url::fromRoute('rest.monitoring-sensor-result.GET', ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
         $list[$id]['uri'] = $url->getGeneratedUrl();
         if ($request->get('expand') == 'sensor') {
           $list[$id]['sensor'] = $result->getSensorConfig()->toArray();

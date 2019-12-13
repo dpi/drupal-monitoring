@@ -259,7 +259,7 @@ class MonitoringUITest extends MonitoringTestBase {
 
     $this->assertText(t('Log'));
 
-    $rows = $this->getSession()->getPage()->findAll('css', '.view-monitoring-sensor-results tbody tr');
+    $rows = $this->getSession()->getPage()->findAll('css', '#edit-sensor-log tbody tr');
     $this->assertEquals(1, count($rows));
     $this->assertEquals('WARNING', $rows[0]->find('css', 'td:nth-child(2)')->getText());
     $this->assertEquals( '1 druplicons in 1 day, falls below 2', $rows[0]->find('css', 'td:nth-child(3)')->getText());
@@ -270,19 +270,19 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->assertText('OK');
     $this->assertText('2 druplicons in 1 day');
 
-    $rows = $this->getSession()->getPage()->findAll('css', '.view-monitoring-sensor-results tbody tr');
+    $rows = $this->getSession()->getPage()->findAll('css', '#edit-sensor-log tbody tr');
     $this->assertEquals(2, count($rows));
     $this->assertEquals('OK', $rows[0]->find('css', 'td:nth-child(2)')->getText());
-    $this->assertSession()->elementTextContains('css', '.view-monitoring-sensor-results tbody tr.monitoring-ok td:nth-child(2)', 'OK');
+    $this->assertSession()->elementTextContains('css', '#edit-sensor-log tbody tr.monitoring-ok td:nth-child(2)', 'OK');
     $this->assertEquals('WARNING', $rows[1]->find('css', 'td:nth-child(2)')->getText());
-    $this->assertSession()->elementTextContains('css', '.view-monitoring-sensor-results tbody tr.monitoring-warning td:nth-child(2)', 'WARNING');
+    $this->assertSession()->elementTextContains('css', '#edit-sensor-log tbody tr.monitoring-warning td:nth-child(2)', 'WARNING');
 
     // Refresh the page, this not run the sensor again.
     $this->drupalGet('admin/reports/monitoring/sensors/entity_aggregate_test');
     $this->assertText('OK');
     $this->assertText('2 druplicons in 1 day');
     $this->assertText(t('Verbose output is not available for cached sensor results. Click force run to see verbose output.'));
-    $rows = $this->getSession()->getPage()->findAll('css', '.view-monitoring-sensor-results tbody tr');
+    $rows = $this->getSession()->getPage()->findAll('css', '#edit-sensor-log tbody tr');
     $this->assertEquals(2, count($rows));
 
 
@@ -417,7 +417,7 @@ class MonitoringUITest extends MonitoringTestBase {
     // Visit the edit page of "core theme default" (config value sensor)
     // and make sure the expected and current values are displayed.
     $this->drupalGet('admin/config/system/monitoring/sensors/core_theme_default');
-    $this->assertText('The expected value of config system.theme:default, current value: classy');
+    $this->assertText('The expected value of config system.theme:default, current value: ' . $this->config('system.theme')->get('default'));
 
 
     // Visit the edit page of "core maintainance mode" (state value sensor)

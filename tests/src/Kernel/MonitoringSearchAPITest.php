@@ -40,7 +40,7 @@ class MonitoringSearchAPITest extends MonitoringUnitTestBase {
     // Install required database tables for each module.
     $this->installSchema('search_api', ['search_api_item']);
     $this->installEntitySchema('search_api_task');
-    $this->installSchema('system', ['router', 'queue', 'key_value_expire']);
+    $this->installSchema('system', ['key_value_expire']);
     $this->installSchema('user', ['users_data']);
 
     // Install the schema for entity entity_test_mulrev_changed.

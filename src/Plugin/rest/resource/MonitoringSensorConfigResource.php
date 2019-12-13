@@ -100,7 +100,7 @@ class MonitoringSensorConfigResource extends ResourceBase {
         throw new NotFoundHttpException($e->getMessage(), $e);
       }
       $response = $sensor_config->getDefinition();
-      $url = Url::fromRoute('rest.monitoring-sensor.GET.' . $format, ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
+      $url = Url::fromRoute('rest.monitoring-sensor.GET', ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
       $response['uri'] = $url->getGeneratedUrl();
       $response = new ResourceResponse($response);
       $response->addCacheableDependency($url);
@@ -112,7 +112,7 @@ class MonitoringSensorConfigResource extends ResourceBase {
     $cacheable_metadata = new CacheableMetadata();
     foreach ($this->sensorManager->getAllSensorConfig() as $id => $sensor_config) {
       $list[$id] = $sensor_config->getDefinition();
-      $url = Url::fromRoute('rest.monitoring-sensor.GET.' . $format, ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
+      $url = Url::fromRoute('rest.monitoring-sensor.GET', ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
       $list[$id]['uri'] = $url->getGeneratedUrl();
 
       $cacheable_metadata = $cacheable_metadata->merge($url);

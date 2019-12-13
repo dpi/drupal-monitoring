@@ -141,8 +141,6 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
    */
   public function testQueueSizeSensorPlugin() {
 
-    $this->installSchema('system', ['queue']);
-
     // Create queue sensor.
     $sensor_config = SensorConfig::create(array(
       'id' => 'core_queue_monitoring_test',
@@ -284,7 +282,6 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
    */
   public function testImageMissingStyleSensorPlugin() {
     $this->installSchema('file', ['file_usage']);
-    $this->installSchema('system', ['router']);
     $this->installEntitySchema('file');
     $this->installConfig(['system']);
 
@@ -437,7 +434,6 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
 
     $this->installEntitySchema('user');
     $this->installEntitySchema('node');
-    $this->installSchema('system', ['router']);
     \Drupal::service('router.builder')->rebuild();
 
     $type1 = NodeType::create(['type' => $this->randomMachineName()]);

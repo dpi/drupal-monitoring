@@ -75,7 +75,7 @@ class MonitoringMultigraphResource extends ResourceBase {
         throw new NotFoundHttpException('No multigraph with name "' . $id . '"');
       }
       $response = $multigraph->getDefinition();
-      $url = Url::fromRoute('rest.monitoring-multigraph.GET.' . $format , ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
+      $url = Url::fromRoute('rest.monitoring-multigraph.GET' , ['id' => $id, '_format' => $format])->setAbsolute()->toString(TRUE);
       $response['uri'] = $url->getGeneratedUrl();
       $response = new ResourceResponse($response);
       $response->addCacheableDependency($multigraph);
@@ -91,7 +91,7 @@ class MonitoringMultigraphResource extends ResourceBase {
     foreach ($multigraphs as $name => $multigraph) {
       /** @var \Drupal\monitoring_multigraph\Entity\Multigraph $multigraph */
       $list[$name] = $multigraph->getDefinition();
-      $url = Url::fromRoute('rest.monitoring-multigraph.GET.' . $format , ['id' => $name, '_format' => $format])->setAbsolute()->toString(TRUE);
+      $url = Url::fromRoute('rest.monitoring-multigraph.GET' , ['id' => $name, '_format' => $format])->setAbsolute()->toString(TRUE);
       $list[$name]['uri'] = $url->getGeneratedUrl();
 
       $cacheable_metadata = $cacheable_metadata->merge($url);

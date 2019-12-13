@@ -35,6 +35,11 @@ class MultigraphWebTest extends BrowserTestBase {
   ];
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * Configures test base and executes test cases.
    */
   public function testMultigraphForm() {
