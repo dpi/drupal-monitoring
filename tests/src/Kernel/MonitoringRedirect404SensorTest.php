@@ -40,6 +40,7 @@ class MonitoringRedirect404SensorTest extends MonitoringUnitTestBase {
       'path' => '/non-existing-path',
       'langcode' => 'en',
       'count' => '3',
+      'daily_count' => '3',
       'timestamp' => time(),
       'resolved' => 0,
     ])->execute();
@@ -86,7 +87,8 @@ class MonitoringRedirect404SensorTest extends MonitoringUnitTestBase {
     $database->insert('redirect_404')->fields([
       'path' => '/non-existing-path-4',
       'langcode' => 'en',
-      'count' => '4',
+      'count' => '5',
+      'daily_count' => '4',
       'timestamp' => time(),
       'resolved' => 0,
     ])->execute();
@@ -98,7 +100,10 @@ class MonitoringRedirect404SensorTest extends MonitoringUnitTestBase {
     $this->assertContains('/non-existing-path-4', $sensor_result->getMessage());
     $this->assertEquals('/non-existing-path-4', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][0]['path']);
     $this->assertEquals('/non-existing-path', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][1]['path']);
-    $this->assertEquals('4', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][0]['count']);
+    $this->assertEquals('5', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][0]['count']);
+    $this->assertEquals('4', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][0]['daily_count']);
     $this->assertEquals('3', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][1]['count']);
+    $this->assertEquals('3', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][1]['daily_count']);
   }
+
 }

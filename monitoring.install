@@ -127,3 +127,23 @@ function monitoring_update_8102() {
     }
   }
 }
+
+/**
+ * Change count field to daily_count in redirect 404 sensor.
+ */
+function monitoring_update_8103() {
+  $redirect_404_sensor = SensorConfig::load('redirect_404');
+
+  if ($redirect_404_sensor) {
+    $verbose_fields = $redirect_404_sensor->getSetting('verbose_fields', []);
+
+    if (($key = array_search('count', $verbose_fields)) !== FALSE) {
+      array_splice($verbose_fields, $key + 1, 0, 'daily_count');
+
+      $settings = $redirect_404_sensor->getSettings();
+      $settings['verbose_fields'] = $verbose_fields;
+
+      $redirect_404_sensor->set('settings', $settings)->save();
+    }
+  }
+}

@@ -15,5 +15,8 @@
         "drupal/search_api_solr": "~3.0",
         "drupal/redirect": "~1.0",
         "drupal/commerce": "~2.0"
+    },
+    "conflict": {
+        "drupal/redirect": "<1.5"
     }
 }

@@ -18,6 +18,7 @@ settings:
   - 'path'
   - 'timestamp'
   - 'count'
+  - 'daily_count'
   time_interval_field: 'timestamp'
   time_interval_value: 86400
 thresholds:

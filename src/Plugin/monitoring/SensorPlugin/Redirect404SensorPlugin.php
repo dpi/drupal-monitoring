@@ -38,7 +38,7 @@ class Redirect404SensorPlugin extends DatabaseAggregatorSensorPlugin implements 
    * {@inheritdoc}
    */
   protected function addAggregateExpression(SelectInterface $select) {
-    $select->addField('redirect_404', 'count', 'records_count');
+    $select->addField('redirect_404', 'daily_count', 'records_count');
   }
 
   /**
@@ -49,7 +49,7 @@ class Redirect404SensorPlugin extends DatabaseAggregatorSensorPlugin implements 
     $query->addField('redirect_404', 'path');
     // The message is the requested 404 URL.
     $query->condition('resolved', 0);
-    $query->orderBy('count', 'DESC');
+    $query->orderBy('daily_count', 'DESC');
     $query->range(0, 1);
     return $query;
   }
@@ -62,7 +62,7 @@ class Redirect404SensorPlugin extends DatabaseAggregatorSensorPlugin implements 
     // Unset timestamp order from parent class.
     $order = &$query->getOrderBy();
     $order = [];
-    $query->orderBy('count', 'DESC');
+    $query->orderBy('daily_count', 'DESC');
     $query->condition('resolved', 0);
     $query->range(0, 10);
     return $query;
@@ -76,6 +76,7 @@ class Redirect404SensorPlugin extends DatabaseAggregatorSensorPlugin implements 
     if (isset($header['path'])) {
       $header['path'] = $this->t('Path');
       $header['count'] = $this->t('Count');
+      $header['daily_count'] = $this->t('Daily count');
       $header['timestamp'] = $this->t('Last access');
     }
     return $header;
