@@ -18,5 +18,12 @@
     },
     "conflict": {
         "drupal/redirect": "<1.5"
+    },
+    "extra": {
+        "drush": {
+            "services": {
+                "drush.services.yml": "^9 || ^10"
+            }
+        }
     }
 }

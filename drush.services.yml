@@ -1,0 +1,6 @@
+services:
+  monitoring.commands:
+    class: Drupal\monitoring\Commands\MonitoringCommands
+    arguments: ['@monitoring.sensor_manager', '@date.formatter']
+    tags:
+      - { name: drush.command }
