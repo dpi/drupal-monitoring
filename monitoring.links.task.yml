@@ -1,3 +1,8 @@
+monitoring.settings:
+  route_name: monitoring.settings
+  base_route: monitoring.settings
+  title: Settings
+
 monitoring.sensor_list:
   route_name: monitoring.sensor_list
   base_route: monitoring.sensor_list
