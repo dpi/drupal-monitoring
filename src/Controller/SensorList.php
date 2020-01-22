@@ -111,7 +111,7 @@ class SensorList extends ControllerBase {
           ->getListBuilder($sensor_config->getEntityTypeId())
           ->getOperations($sensor_config);
 
-        \Drupal::moduleHandler()->alterDeprecated('monitoring_sensor_links', $operations, $sensor_config);
+        \Drupal::moduleHandler()->alterDeprecated('Sensor links should be implemented with \hook_entity_operation().', 'monitoring_sensor_links', $operations, $sensor_config);
 
         $row['data']['actions'] = [];
         if (!empty($operations)) {
