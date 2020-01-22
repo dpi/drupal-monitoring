@@ -159,7 +159,11 @@ class MonitoringUITest extends MonitoringTestBase {
     $this->assertResponse(403);
     $this->drupalGet('admin/reports/monitoring/log');
     $this->assertResponse(403);
-    $account = $this->drupalCreateUser(array('monitoring reports'));
+    $account = $this->drupalCreateUser([
+      'monitoring reports',
+      // Permission required to show edit links.
+      'administer monitoring',
+    ]);
     $this->drupalLogin($account);
 
     // Run the test_sensor and update the timestamp in the cache to make the
@@ -188,7 +192,6 @@ class MonitoringUITest extends MonitoringTestBase {
     // Test the action buttons are clickable.
     $this->assertLink(t('Details'));
     $this->assertLink(t('Edit'));
-    $this->assertLink(t('Details'));
 
     // Test the overview table.
     $rows = $this->getSession()->getPage()->findAll('css', '#monitoring-sensors-overview tbody tr');

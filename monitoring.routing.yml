@@ -76,7 +76,7 @@ entity.monitoring_sensor_config.delete_form:
     _entity_form: 'monitoring_sensor_config.delete'
     _title: 'Delete'
   requirements:
-    _permission: 'administer monitoring'
+    _entity_access: 'monitoring_sensor_config.delete'
 
 entity.monitoring_sensor_config.edit_form:
   path: '/admin/config/system/monitoring/sensors/{monitoring_sensor_config}'
@@ -84,7 +84,7 @@ entity.monitoring_sensor_config.edit_form:
     _entity_form: 'monitoring_sensor_config.edit'
     _title_callback: '\Drupal\monitoring\Form\SensorForm::formTitle'
   requirements:
-    _permission: 'administer monitoring'
+    _entity_access: 'monitoring_sensor_config.update'
 
 monitoring.sensor_add:
   path: '/admin/config/system/monitoring/sensors/add'

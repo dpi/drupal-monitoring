@@ -107,30 +107,18 @@ class SensorList extends ControllerBase {
 
         $row['class'] = array('monitoring-' . strtolower($sensor_result->getStatus()));
 
-        $links = array();
-        $links['details'] = array(
-          'title' => t('Details'),
-          'url' => $sensor_config->toUrl('details-form')
-        );
+        $operations = $this->entityTypeManager()
+          ->getListBuilder($sensor_config->getEntityTypeId())
+          ->getOperations($sensor_config);
 
-        // Display a force execution link for any sensor that can be cached.
-        if ($sensor_config->getCachingTime() && $this->currentUser()->hasPermission('monitoring force run')) {
-          $links['force_execution'] = array(
-            'title' => t('Force execution'),
-            'url' => $sensor_config->toUrl('force-run-sensor')
-          );
-        }
-        $links['edit'] = array(
-          'title' => t('Edit'),
-          'url' => $sensor_config->toUrl('edit-form'),
-          'query' => array('destination' => 'admin/reports/monitoring')
-        );
+        \Drupal::moduleHandler()->alterDeprecated('monitoring_sensor_links', $operations, $sensor_config);
 
-        \Drupal::moduleHandler()->alter('monitoring_sensor_links', $links, $sensor_config);
-
-        $row['data']['actions'] = array();
-        if (!empty($links)) {
-          $row['data']['actions']['data'] = array('#type' => 'dropbutton', '#links' => $links);
+        $row['data']['actions'] = [];
+        if (!empty($operations)) {
+          $row['data']['actions']['data'] = [
+            '#type' => 'dropbutton',
+            '#links' => $operations,
+          ];
         }
 
         $rows[] = $row;
@@ -175,7 +163,7 @@ class SensorList extends ControllerBase {
       t('Called before'),
       t('Execution time'),
       t('Status Message'),
-      array('data' => t('Actions'), 'class' => array('actions')),
+      ['data' => t('Operations'), 'class' => ['actions']],
     );
 
     $monitoring_escalated_sensors = $status_overview[SensorResultInterface::STATUS_WARNING] +

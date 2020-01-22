@@ -8,6 +8,7 @@
 namespace Drupal\monitoring;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Entity\EntityAccessControlHandler;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -26,17 +27,27 @@ class SensorConfigAccessControlHandler extends EntityAccessControlHandler {
     /** @var \Drupal\monitoring\Entity\SensorConfig $entity */
     $plugin_definition = $entity->getPlugin()->getPluginDefinition();
 
+    $cacheability = new CacheableMetadata();
     if ($operation == 'delete' && !$plugin_definition['addable']) {
-      return AccessResult::forbidden();
+      return AccessResult::forbidden('Cannot delete non-addable sensor configuration instances.');
     }
-    if ($operation == 'view') {
+    elseif ($operation == 'force run') {
+      return AccessResult::allowedIfHasPermission($account, 'monitoring force run');
+    }
+    elseif ($operation == 'view') {
+      $cacheability->addCacheableDependency($entity);
       if (!$entity->isEnabled()) {
-        return AccessResult::forbidden()->addCacheableDependency($entity);
+        return AccessResult::forbidden('Sensor is not enabled.')->addCacheableDependency($cacheability);
       }
-      elseif ($account->hasPermission('monitoring reports')) {
-        return AccessResult::allowed()->cachePerUser();
+
+      // We're testing against permission, so add vary by permission.
+      $cacheability->addCacheContexts(['user.permissions']);
+      if ($account->hasPermission('monitoring reports')) {
+        return AccessResult::allowed()->addCacheableDependency($cacheability);
       }
     }
-    return parent::checkAccess($entity, $operation, $account);
+
+    return parent::checkAccess($entity, $operation, $account)->addCacheableDependency($cacheability);
   }
+
 }

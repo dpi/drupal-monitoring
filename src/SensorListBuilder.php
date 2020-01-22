@@ -218,4 +218,26 @@ class SensorListBuilder extends ConfigEntityListBuilder implements FormInterface
     $this->messenger()->addMessage($this->t('Configuration has been saved.'));
   }
 
+  public function getDefaultOperations(EntityInterface $entity) {
+    $operations = [];
+
+    if ($entity->access('view')) {
+      $operations['view'] = [
+        'title' => \t('Details'),
+        'weight' => -20,
+        'url' => $entity->toUrl('details-form'),
+      ];
+    }
+
+    if ($entity->access('force run')) {
+      $operations['force_run'] = [
+        'title' => \t('Force execution'),
+        'weight' => -10,
+        'url' => $entity->toUrl('force-run-sensor'),
+      ];
+    }
+
+    return $operations;
+  }
+
 }
