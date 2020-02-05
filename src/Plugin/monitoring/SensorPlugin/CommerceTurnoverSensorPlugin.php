@@ -100,15 +100,16 @@ class CommerceTurnoverSensorPlugin extends ContentEntityAggregatorSensorPlugin {
 
     $query_result = $this->getEntityQueryAggregate()->execute();
     $currency_code = $this->sensorConfig->getSetting('commerce_order_currency');
-    $sensor_value = 0;
+    $sensor_value = NULL;
 
     if (!empty($query_result)) {
       $query_result = reset($query_result);
-
-      $sensor_value = $query_result['total_pricenumber_sum'];
+      if (is_numeric($query_result['total_pricenumber_sum'])) {
+        $sensor_value = $this->currencyFormatter->format($query_result['total_pricenumber_sum'], $currency_code);
+      }
     }
 
-    $result->setValue($this->currencyFormatter->format($sensor_value, $currency_code));
+    $result->setValue($sensor_value);
   }
 
   /**

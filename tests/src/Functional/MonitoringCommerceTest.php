@@ -90,6 +90,9 @@ class MonitoringCommerceTest extends MonitoringTestBase {
       ],
     ]);
     $sensor->save();
+    // Assert there is no value if there are no orders.
+    $result = $this->runSensor('commerce_total_turnover');
+    $this->assertEqual($result->getMessage(), 'No value');
 
     // Create some orders with different states and currencies.
     $this->createEmptyOrderWithPrice('canceled');
