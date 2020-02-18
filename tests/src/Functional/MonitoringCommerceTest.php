@@ -127,6 +127,9 @@ class MonitoringCommerceTest extends MonitoringTestBase {
 
     $result = $this->runSensor('commerce_total_turnover');
     $this->assertEqual($result->getMessage(), 'Value € 250.00 in 1 day');
+    $this->drupalLogout();
+    $result = $this->runSensor('commerce_total_turnover');
+    $this->assertEqual($result->getMessage(), 'Value € 250.00 in 1 day');
   }
 
   /**

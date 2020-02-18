@@ -78,7 +78,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
     $entity_info = $this->entityTypeManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);
 
     // Get aggregate query for the entity type.
-    $query = $this->entityTypeManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getAggregateQuery();
+    $query = $this->entityTypeManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getAggregateQuery()->accessCheck(FALSE);
     $this->aggregateField = $entity_info->getKey('id');
 
     $this->addAggregate($query);
@@ -113,7 +113,7 @@ class ContentEntityAggregatorSensorPlugin extends DatabaseAggregatorSensorPlugin
     $entity_info = $this->entityTypeManager->getDefinition($this->sensorConfig->getSetting('entity_type'), TRUE);
 
     // Get query for the entity type.
-    $query = $this->entityTypeManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getQuery();
+    $query = $this->entityTypeManager->getStorage($this->sensorConfig->getSetting('entity_type'))->getQuery()->accessCheck(FALSE);
     // Add conditions.
     foreach ($this->getConditions() as $condition) {
       if (empty($condition['field'])) {
