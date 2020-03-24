@@ -55,6 +55,13 @@ function monitoring_sensor_config_by_categories($enabled = TRUE) {
  * Implements hook_modules_installed().
  */
 function monitoring_modules_installed($modules) {
+  if (\Drupal::service('config.installer')->isSyncing()) {
+    // Don't create any config when syncing.
+    // @todo change to $is_syncing param after 8.9 is minimum per
+    // https://www.drupal.org/node/3098920
+    return;
+  }
+
   // Update the installed modules.
   foreach ($modules as $module) {
     // Check for dependencies that are not initialized.
