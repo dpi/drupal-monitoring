@@ -156,7 +156,12 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
     $test_user = User::load($test_user->id());
     $this->drupalGet('/admin/reports/monitoring/sensors/user_sessions_authenticated');
 
-    $query = "SELECT sessions.uid AS uid, sessions.hostname AS hostname, sessions.timestamp AS timestamp FROM {$this->databasePrefix}sessions sessions WHERE (uid != :db_condition_placeholder_0) AND (timestamp > :db_condition_placeholder_1) ORDER BY timestamp DESC LIMIT 10 OFFSET 0";
+    if (\version_compare(\Drupal::VERSION, '9', '>=')) {
+      $query = 'SELECT "sessions"."uid" AS "uid", "sessions"."hostname" AS "hostname", "sessions"."timestamp" AS "timestamp" FROM "' . $this->databasePrefix . 'sessions" "sessions" WHERE ("uid" != :db_condition_placeholder_0) AND ("timestamp" > :db_condition_placeholder_1) ORDER BY "timestamp" DESC LIMIT 10 OFFSET 0';
+    }
+    else {
+      $query = "SELECT sessions.uid AS uid, sessions.hostname AS hostname, sessions.timestamp AS timestamp FROM {$this->databasePrefix}sessions sessions WHERE (uid != :db_condition_placeholder_0) AND (timestamp > :db_condition_placeholder_1) ORDER BY timestamp DESC LIMIT 10 OFFSET 0";
+    }
     $this->assertSession()->elementTextContains('css', '#unaggregated_result details pre', $query);
 
     // 3 fields are expected to be displayed.
@@ -449,8 +454,8 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
    * @see \Drupal\monitoring\Plugin\monitoring\SensorPlugin\DisappearedSensorsSensorPlugin
    */
   public function testSensorDisappearedSensors() {
-    // Install the comment module.
-    $this->installModules(array('comment'));
+    // Install the media module.
+    $this->installModules(array('media'));
 
     // Run the disappeared sensor - it should not report any problems.
     $result = $this->runSensor('monitoring_disappeared_sensors');
@@ -466,21 +471,22 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
         '@names' => implode(', ', array_keys($sensor_config_all))
       )));
 
-    // Uninstall the comment module so that the comment_new sensor goes away.
-    $this->uninstallModules(array('comment'));
+    // Uninstall the media module so that the media requirements sensor goes
+    // away.
+    $this->uninstallModules(array('media'));
 
     // The comment_new sensor has gone away and therefore we should have the
     // critical status.
     $result = $this->runSensor('monitoring_disappeared_sensors');
     $this->assertTrue($result->isCritical());
-    $this->assertEqual($result->getMessage(), 'Missing sensor comment_new, Missing sensor core_requirements_comment');
+    $this->assertEqual($result->getMessage(), 'Missing sensor core_requirements_media');
     // There should be no new logs.
     $this->assertEqual(count($this->loadWatchdog()), 1);
 
     // Install the comment module to test the correct procedure of removing
     // sensors.
-    $this->installModules(array('comment'));
-    monitoring_sensor_manager()->enableSensor('comment_new');
+    $this->installModules(array('media'));
+    monitoring_sensor_manager()->enableSensor('core_requirements_media');
 
     // Now we should be back to normal.
     $result = $this->runSensor('monitoring_disappeared_sensors');
@@ -489,16 +495,15 @@ class MonitoringCoreWebTest extends MonitoringTestBase {
 
     // Do the correct procedure to remove a sensor - first disable thes sensors
     // and then uninstall the comment module.
-    monitoring_sensor_manager()->disableSensor('comment_new');
-    monitoring_sensor_manager()->disableSensor('core_requirements_comment');
-    $this->uninstallModules(array('comment'));
+    monitoring_sensor_manager()->disableSensor('core_requirements_media');
+    $this->uninstallModules(array('media'));
 
     // The sensor should not report any problem this time.
     $result = $this->runSensor('monitoring_disappeared_sensors');
     $this->assertTrue($result->isOk());
     $log = $this->loadWatchdog();
-    $this->assertEqual(count($log), 2, 'Removal of comment_new sensor should be logged.');
-    $this->assertEqual(new FormattableMarkup($log[1]->message, unserialize($log[1]->variables)), '2 new sensor/s removed: comment_new, core_requirements_comment');
+    $this->assertEqual(count($log), 2, 'Removal of core_requirements_media sensor should be logged.');
+    $this->assertEqual(new FormattableMarkup($log[1]->message, unserialize($log[1]->variables)), '1 new sensor/s removed: core_requirements_media');
   }
 
   /**

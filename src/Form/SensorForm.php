@@ -429,7 +429,7 @@ class SensorForm extends EntityForm {
    */
   public function validateThresholdsForm(array &$form, FormStateInterface $form_state) {
     $values = $form_state->getValue(array('thresholds'));
-    $type = $values['type'];
+    $type = is_array($values) ? $values['type'] : NULL;
 
     switch ($type) {
       case 'exceeds':

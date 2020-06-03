@@ -27,7 +27,6 @@ class MonitoringPastTest extends MonitoringUnitTestBase {
     // Install the past entities and tables.
     $this->installEntitySchema('past_event');
     $this->installSchema('past_db', array('past_event_argument', 'past_event_data'));
-    $this->installSchema('system', ['router']);
     $this->installConfig(['system']);
     \Drupal::service('router.builder')->rebuild();
   }

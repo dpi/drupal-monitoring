@@ -49,7 +49,7 @@ class MonitoringRedirect404SensorTest extends MonitoringUnitTestBase {
     $sensor_result = $this->runSensor('redirect_404');
     $this->assertTrue($sensor_result->isOk());
     $this->assertEquals('3', $sensor_result->getValue());
-    $this->assertContains('/non-existing-path', $sensor_result->getMessage());
+    $this->assertStringContainsString('/non-existing-path', $sensor_result->getMessage());
 
     // Add a 404 request to a resolved path.
     $database->insert('redirect_404')->fields([
@@ -65,7 +65,7 @@ class MonitoringRedirect404SensorTest extends MonitoringUnitTestBase {
     $sensor_result = $this->runSensor('redirect_404');
     $this->assertTrue($sensor_result->isOk());
     $this->assertEquals('3', $sensor_result->getValue());
-    $this->assertContains('/non-existing-path', $sensor_result->getMessage());
+    $this->assertStringContainsString('/non-existing-path', $sensor_result->getMessage());
 
     // Add a 404 request to an unresolved path, 2 days old.
     $database->insert('redirect_404')->fields([
@@ -81,7 +81,7 @@ class MonitoringRedirect404SensorTest extends MonitoringUnitTestBase {
     $sensor_result = $this->runSensor('redirect_404');
     $this->assertTrue($sensor_result->isOk());
     $this->assertEquals('3', $sensor_result->getValue());
-    $this->assertContains('/non-existing-path', $sensor_result->getMessage());
+    $this->assertStringContainsString('/non-existing-path', $sensor_result->getMessage());
 
     // Add a 404 request to an unresolved path.
     $database->insert('redirect_404')->fields([
@@ -97,7 +97,7 @@ class MonitoringRedirect404SensorTest extends MonitoringUnitTestBase {
     $sensor_result = $this->runSensor('redirect_404');
     $this->assertTrue($sensor_result->isOk());
     $this->assertEquals('4', $sensor_result->getValue());
-    $this->assertContains('/non-existing-path-4', $sensor_result->getMessage());
+    $this->assertStringContainsString('/non-existing-path-4', $sensor_result->getMessage());
     $this->assertEquals('/non-existing-path-4', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][0]['path']);
     $this->assertEquals('/non-existing-path', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][1]['path']);
     $this->assertEquals('5', $sensor_result->getVerboseOutput()['verbose_sensor_result']['#rows'][0]['count']);
