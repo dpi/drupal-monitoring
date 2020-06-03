@@ -122,6 +122,7 @@ class SensorListBuilder extends ConfigEntityListBuilder implements FormInterface
     $categories = [];
     $options = [];
     $default_value = [];
+    $sensor_types = [];
 
     /** @var \Drupal\monitoring\Entity\SensorConfig $entity */
     foreach ($this->load() as $entity) {
