@@ -5,6 +5,7 @@ namespace Drupal\monitoring\Plugin\monitoring\SensorPlugin;
 use CommerceGuys\Intl\Formatter\CurrencyFormatterInterface;
 use Drupal\commerce_price\Entity\CurrencyInterface;
 use Drupal\commerce_store\CurrentStoreInterface;
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -50,14 +51,22 @@ class CommerceTurnoverSensorPlugin extends ContentEntityAggregatorSensorPlugin {
   protected $workflowManager;
 
   /**
+   * Date formatter.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatterInterface
+   */
+  protected $dateFormatter;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(SensorConfig $sensor_config, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, CurrencyFormatterInterface $currency_formatter, CurrentStoreInterface $current_store, WorkflowManagerInterface $workflow_manager) {
+  public function __construct(SensorConfig $sensor_config, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, CurrencyFormatterInterface $currency_formatter, CurrentStoreInterface $current_store, WorkflowManagerInterface $workflow_manager, DateFormatterInterface $date_formatter) {
     parent::__construct($sensor_config, $plugin_id, $plugin_definition, $entity_type_manager, $entity_field_manager);
 
     $this->currencyFormatter = $currency_formatter;
     $this->currentStore = $current_store;
     $this->workflowManager = $workflow_manager;
+    $this->dateFormatter = $date_formatter;
   }
 
   /**
@@ -72,7 +81,8 @@ class CommerceTurnoverSensorPlugin extends ContentEntityAggregatorSensorPlugin {
       $container->get('entity_field.manager'),
       $container->get('commerce_price.currency_formatter'),
       $container->get('commerce_store.current_store'),
-      $container->get('plugin.manager.workflow')
+      $container->get('plugin.manager.workflow'),
+      $container->get('date.formatter')
     );
   }
 
@@ -105,7 +115,11 @@ class CommerceTurnoverSensorPlugin extends ContentEntityAggregatorSensorPlugin {
     if (!empty($query_result)) {
       $query_result = reset($query_result);
       if (is_numeric($query_result['total_pricenumber_sum'])) {
-        $sensor_value = $this->currencyFormatter->format($query_result['total_pricenumber_sum'], $currency_code);
+        $sensor_value = $query_result['total_pricenumber_sum'];
+        $result->setMessage('@formatted_value in @time_interval', [
+          '@formatted_value' => $this->currencyFormatter->format($sensor_value, $currency_code),
+          '@time_interval' => $this->dateFormatter->formatInterval($this->sensorConfig->getTimeIntervalValue()),
+        ]);
       }
     }
 
