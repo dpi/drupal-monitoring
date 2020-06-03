@@ -1,0 +1,25 @@
+{#
+/**
+ * @file
+ * Default theme implementation for monitoring overview summary.
+ *
+ * @ingroup themeable
+ */
+#}
+
+<div class="monitoring-overview-summary">
+  {% trans %}<span class="monitoring-summary-time">Request execution time: <strong>{{ time_non_cached }}ms</strong> (including cached <strong>{{ time_total }}ms</strong>)</span>, <span class="monitoring-summary-ok">&nbsp;</span> {{ ok }} OK, <span class="monitoring-summary-info">&nbsp;</span> {{ info }} Info, <span class="monitoring-summary-warning">&nbsp;</span> {{ warning }} Warning, <span class="monitoring-summary-critical">&nbsp;</span> {{ critical }} Critical, <span class="monitoring-summary-unknown">&nbsp;</span> {{ unknown }} Unknown{% endtrans %}
+</div>
+
+{% if has_force_run_permission %}
+<div class="monitoring-overview-summary-actions-right">
+ <a href="{{ path('monitoring.force_run_all') }}" class="button button-action button--primary button--small">{{ 'Force execute all'|t }}</a>
+</div>
+{% endif %}
+
+{% if oldest_sensor_label %}
+  <div class="monitoring-overview-summary-actions-right">{% trans %}Sensor {{ oldest_sensor_label|placeholder }} ({{ oldest_sensor_category|placeholder }}) cached before {{ oldest_sensor_called_before }}{% endtrans %}</div>
+{% else %}
+  <div class="monitoring-overview-summary-actions-right">{{ 'No sensor cached.'|t }}</div>
+{% endif %}
+
