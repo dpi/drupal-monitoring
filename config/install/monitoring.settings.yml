@@ -1,2 +1,3 @@
 sensor_call_logging: on_request
 cron_run_sensors: FALSE
+disable_sensor_autocreate: false
