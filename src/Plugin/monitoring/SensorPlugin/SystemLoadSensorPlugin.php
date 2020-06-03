@@ -94,7 +94,7 @@ class SystemLoadSensorPlugin extends SensorPluginBase {
       $average = (int) ($average * 100);
       // Set values and status based on the system thresholds.
       $result->setValue($average);
-      $result->addStatusMessage(implode($load_average, ', '));
+      $result->addStatusMessage(implode(', ', $load_average));
     }
   }
 
