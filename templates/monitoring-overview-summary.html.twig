@@ -17,9 +17,10 @@
 </div>
 {% endif %}
 
+<div class="monitoring-overview-summary-actions-right">
 {% if oldest_sensor_label %}
-  <div class="monitoring-overview-summary-actions-right">{% trans %}Sensor {{ oldest_sensor_label|placeholder }} ({{ oldest_sensor_category|placeholder }}) cached before {{ oldest_sensor_called_before }}{% endtrans %}</div>
+  {% trans %}Sensor {{ oldest_sensor_label|placeholder }} ({{ oldest_sensor_category|placeholder }}) cached before {{ oldest_sensor_called_before }}{% endtrans %}
 {% else %}
-  <div class="monitoring-overview-summary-actions-right">{{ 'No sensor cached.'|t }}</div>
+  {{ 'No sensor cached.'|t }}
 {% endif %}
-
+</div>
