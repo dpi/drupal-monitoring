@@ -9,6 +9,9 @@ monitoring.settings:
     cron_run_sensors:
       type: boolean
       label: 'Run sensors during cron runs'
+    disable_sensor_autocreate:
+      type: boolean
+      label: 'Whether to never create sensors automatically in response to config changes'
 
 # Config schema for sensor config entity.
 monitoring.sensor_config.*:

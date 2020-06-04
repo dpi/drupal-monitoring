@@ -59,6 +59,6 @@ class MonitoringCronErrorPluginTest extends MonitoringUnitTestBase {
     $verbose_output = $result->getVerboseOutput()['log_entries']['#rows'][0];
     $this->assertTrue($result->isOk());
     $this->assertEquals('Default cron handler (Ultimate Cron Logger Test)', $verbose_output['name']);
-    $this->assertContains('Test cron exception', $verbose_output['message']);
+    $this->assertStringContainsString('Test cron exception', $verbose_output['message']);
   }
 }

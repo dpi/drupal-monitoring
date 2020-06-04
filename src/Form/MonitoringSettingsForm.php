@@ -53,6 +53,12 @@ class MonitoringSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('cron_run_sensors'),
       '#description' => $this->t('In this mode, monitoring will not be able to detect if cron is running. It is recommended to fetch sensor results with drush or through REST requests for a more reliable setup.'),
     ];
+    $form['disable_sensor_autocreate'] = [
+      '#title' => $this->t('Disable sensor auto creation'),
+      '#type' => 'checkbox',
+      '#default_value' => $config->get('disable_sensor_autocreate'),
+      '#description' => $this->t('Disable automatic sensor creation. For example: sensors are normally added when node types are added, or new modules are installed.'),
+    ];
 
     return parent::buildForm($form, $form_state);
   }
@@ -66,6 +72,7 @@ class MonitoringSettingsForm extends ConfigFormBase {
     $this->config('monitoring.settings')
       ->set('sensor_call_logging', $form_state->getValue('sensor_call_logging'))
       ->set('cron_run_sensors', $form_state->getValue('cron_run_sensors'))
+      ->set('disable_sensor_autocreate', $form_state->getValue('disable_sensor_autocreate'))
       ->save();
   }
 

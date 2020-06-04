@@ -83,8 +83,8 @@ class MonitoringMailKernelTest extends MonitoringUnitTestBase {
     $this->assertEquals(1, count($this->getMails()));
     // Check if the 'mail header Message-ID' contains sensor_id and host name.
     $mails = $this->getMails();
-    $this->assertContains('test_sensor_falls', $mails[0]['headers']['Message-ID']);
-    $this->assertContains(\Drupal::request()->getHost(), $mails[0]['headers']['Message-ID']);
+    $this->assertStringContainsString('test_sensor_falls', $mails[0]['headers']['Message-ID']);
+    $this->assertStringContainsString(\Drupal::request()->getHost(), $mails[0]['headers']['Message-ID']);
     // Check the 'mail header From' value.
     $this->assertEquals('MONITORING Example <site_mail@example.com>', $mails[0]['headers']['From']);
 

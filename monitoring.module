@@ -55,6 +55,13 @@ function monitoring_sensor_config_by_categories($enabled = TRUE) {
  * Implements hook_modules_installed().
  */
 function monitoring_modules_installed($modules) {
+  if (\Drupal::service('config.installer')->isSyncing()) {
+    // Don't create any config when syncing.
+    // @todo change to $is_syncing param after 8.9 is minimum per
+    // https://www.drupal.org/node/3098920
+    return;
+  }
+
   // Update the installed modules.
   foreach ($modules as $module) {
     // Check for dependencies that are not initialized.
@@ -78,6 +85,10 @@ function initialize_requirements_sensors($module) {
   if ($module == 'update') {
     return FALSE;
   }
+  if (!empty(\Drupal::configFactory()->get('monitoring.settings')->get('disable_sensor_autocreate'))) {
+    return FALSE;
+  }
+
   $sensor = SensorConfig::create(array(
     'id' => 'core_requirements_' . $module,
     'label' => new FormattableMarkup('Module @module', array('@module' => $module)),
@@ -306,109 +317,36 @@ function monitoring_sensor_result_second_last($sensor_name) {
  * Implements hook_theme().
  */
 function monitoring_theme() {
-  return array(
-    'monitoring_config_box' => array(
-      'variables' => array(
-        'title' => NULL,
-        'description' => NULL,
-        'code' => NULL,
-        'code_height' => NULL,
-      ),
-      'function'   => 'theme_monitoring_config_box',
-    ),
-    'monitoring_overview_summary' => array(
-      'variables' => array(
-        'status_overview'           => array(),
-        'total_execution_time'      => NULL,
+  return [
+    'monitoring_overview_summary' => [
+      'variables' => [
+        'status_overview' => [],
+        'total_execution_time' => NULL,
         'non_cached_execution_time' => NULL,
-        'oldest_sensor_label'       => NULL,
-        'oldest_sensor_category'       => NULL,
+        'oldest_sensor_label' => NULL,
+        'oldest_sensor_category' => NULL,
         'oldest_sensor_called_before' => NULL,
-      ),
-      'function' => 'theme_monitoring_overview_summary',
-    ),
-  );
+      ],
+    ],
+  ];
 }
 
 /**
- * Monitoring config code box theme.
+ * Preprocess function for monitoring overview summary.
  *
  * @param array $variables
  *   Theme variables.
- *
- * @return string
- *   Formatted output.
  */
-function theme_monitoring_config_box($variables) {
-  $output = '';
+function template_preprocess_monitoring_overview_summary(&$variables) {
+  $variables['time_total'] = $variables['total_execution_time'];
+  $variables['time_non_cached'] = $variables['non_cached_execution_time'];
+  $variables['ok'] = $variables['status_overview'][SensorResultInterface::STATUS_OK];
+  $variables['info'] = $variables['status_overview'][SensorResultInterface::STATUS_INFO];
+  $variables['warning'] = $variables['status_overview'][SensorResultInterface::STATUS_WARNING];
+  $variables['critical'] = $variables['status_overview'][SensorResultInterface::STATUS_CRITICAL];
+  $variables['unknown'] = $variables['status_overview'][SensorResultInterface::STATUS_UNKNOWN];
 
-  if (!empty($variables['title'])) {
-    $output .= '<h3>' . check_plain($variables['title']) . '</h3>';
-  }
-
-  if (!empty($variables['description'])) {
-    $output .= '<p>' . check_plain($variables['description']) . '</p>';
-  }
-
-  if (!empty($variables['code'])) {
-    $variables['code_height'] = !empty($variables['code_height']) ? $variables['code_height'] : '100';
-    $output .= '<pre style="border:1px solid silver;padding:4px;height:' . $variables['code_height'] . 'px;overflow:auto;">' . check_plain($variables['code']) . '</pre>';
-  }
-
-  return $output;
-}
-
-/**
- * Get config code with dynamic variables.
- *
- * @param string $module
- *   Module name.
- * @param string $type
- *   Config type.
- * @param array $variables
- *   Dynamic values.
- *
- * @return string
- *   Config code.
- */
-function monitoring_config_code($module, $type, $variables = array()) {
-  $code = file_get_contents(drupal_get_path('module', $module) . '/config_tpl/' . $type . '.txt');
-  return new FormattableMarkup($code, $variables);
-}
-
-/**
- * Monitoring overview page summary.
- *
- * @param array $variables
- *   Theme variables.
- *
- * @return string
- *   Formatted output.
- */
-function theme_monitoring_overview_summary($variables) {
-  $output = '<div class="monitoring-overview-summary">';
-  $output .= t('<span class="monitoring-summary-time">Request execution time: <strong>@time_non_cachedms</strong> (including cached <strong>@time_totalms</strong>)</span>, <span class="monitoring-summary-ok">&nbsp;</span> @ok OK, <span class="monitoring-summary-info">&nbsp;</span> @info Info, <span class="monitoring-summary-warning">&nbsp;</span> @warning Warning, <span class="monitoring-summary-critical">&nbsp;</span> @critical Critical, <span class="monitoring-summary-unknown">&nbsp;</span> @unknown Unknown',
-    array(
-      '@time_total' => $variables['total_execution_time'],
-      '@time_non_cached' => $variables['non_cached_execution_time'],
-      '@ok' => $variables['status_overview'][SensorResultInterface::STATUS_OK],
-      '@info' => $variables['status_overview'][SensorResultInterface::STATUS_INFO],
-      '@warning' => $variables['status_overview'][SensorResultInterface::STATUS_WARNING],
-      '@critical' => $variables['status_overview'][SensorResultInterface::STATUS_CRITICAL],
-      '@unknown' => $variables['status_overview'][SensorResultInterface::STATUS_UNKNOWN],
-    ));
-  $output .= '</div>';
-  if (\Drupal::currentUser()->hasPermission('monitoring force run')) {
-    $link = '<a href="' . Url::fromRoute('monitoring.force_run_all')->toString() . '" class="button button-action button--primary button--small"> ' . t('Force execute all') . '</a>';
-    $output .= '<div class="monitoring-overview-summary-actions-right">' . $link . '</div>';
-  }
-  if (!empty($variables['oldest_sensor_label'])) {
-    $output .= '<div class="monitoring-overview-summary-actions-right">' . t('Sensor %sensor (%category) cached before %before.', array('%sensor' => $variables['oldest_sensor_label'], '%before' => $variables['oldest_sensor_called_before'], '%category' => $variables['oldest_sensor_category'])) . '</div>';
-  }
-  else {
-    $output .= '<div class="monitoring-overview-summary-actions-right">' . t('No sensor cached.') . '</div>';
-  }
-  return $output;
+  $variables['has_force_run_permission'] = \Drupal::currentUser()->hasPermission('monitoring force run');
 }
 
 /**
@@ -514,6 +452,9 @@ function monitoring_value_label_callback_bool(SensorResultInterface $result) {
  * Inserts new node sensor config entities on creation of new node types.
  */
 function monitoring_node_type_insert(NodeTypeInterface $type) {
+  if (!empty(\Drupal::configFactory()->get('monitoring.settings')->get('disable_sensor_autocreate'))) {
+    return FALSE;
+  }
 
   // Don't do anything if we are syncing or if the sensor already exists.
   $config_id = 'node_new_' . $type->id();
@@ -601,6 +542,10 @@ function monitoring_node_type_update(NodeTypeInterface $type) {
  * search api indexes.
  */
 function monitoring_search_api_index_insert(IndexInterface $index) {
+  if (!empty(\Drupal::configFactory()->get('monitoring.settings')->get('disable_sensor_autocreate'))) {
+    return FALSE;
+  }
+
   // Don't do anything if we are syncing or if the sensor already exists.
   $config_id = 'search_api_' . $index->id();
   if ($index->isSyncing() || SensorConfig::load($config_id)) {

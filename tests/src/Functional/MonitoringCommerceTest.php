@@ -90,6 +90,10 @@ class MonitoringCommerceTest extends MonitoringTestBase {
       ],
     ]);
     $sensor->save();
+    // Assert there is no value if there are no orders.
+    $result = $this->runSensor('commerce_total_turnover');
+    $this->assertEqual($result->getMessage(), 'No value');
+    $this->assertNull($result->getValue());
 
     // Create some orders with different states and currencies.
     $this->createEmptyOrderWithPrice('canceled');
@@ -99,7 +103,8 @@ class MonitoringCommerceTest extends MonitoringTestBase {
     $this->createEmptyOrderWithPrice('completed', 1500, 'CHF');
 
     $result = $this->runSensor('commerce_total_turnover');
-    $this->assertEqual($result->getMessage(), 'Value CHF 1’900.00 in 1 day');
+    $this->assertEqual($result->getMessage(), 'CHF 1’900.00 in 1 day');
+    $this->assertEqual($result->getValue(), '1900.000000');
 
     // Now only consider completed orders.
     $edit = [
@@ -113,7 +118,8 @@ class MonitoringCommerceTest extends MonitoringTestBase {
     $this->assertContains('completed', $paid_states);
 
     $result = $this->runSensor('commerce_total_turnover');
-    $this->assertEqual($result->getMessage(), 'Value CHF 1’500.00 in 1 day');
+    $this->assertEqual($result->getMessage(), 'CHF 1’500.00 in 1 day');
+    $this->assertEqual($result->getValue(), '1500.000000');
 
     // Change currency.
     $this->createEmptyOrderWithPrice('completed', 250, 'EUR');
@@ -123,7 +129,12 @@ class MonitoringCommerceTest extends MonitoringTestBase {
     $this->drupalPostForm('admin/config/system/monitoring/sensors/commerce_total_turnover', $edit, t('Save'));
 
     $result = $this->runSensor('commerce_total_turnover');
-    $this->assertEqual($result->getMessage(), 'Value € 250.00 in 1 day');
+    $this->assertEqual($result->getMessage(), '€ 250.00 in 1 day');
+    $this->assertEqual($result->getValue(), '250.000000');
+    $this->drupalLogout();
+    $result = $this->runSensor('commerce_total_turnover');
+    $this->assertEqual($result->getMessage(), '€ 250.00 in 1 day');
+    $this->assertEqual($result->getValue(), '250.000000');
   }
 
   /**

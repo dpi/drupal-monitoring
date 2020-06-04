@@ -17,6 +17,12 @@ use Drupal\search_api\Entity\Index;
  * Declares initial set of sensors.
  */
 function monitoring_install() {
+  if (\Drupal::service('config.installer')->isSyncing()) {
+    // Don't create any config when syncing.
+    // @todo change to $is_syncing param after 8.9 is minimum per
+    // https://www.drupal.org/node/3098920
+    return;
+  }
 
   // Declares initial set of NodeType sensors (if module exists).
   if (\Drupal::moduleHandler()->moduleExists('node')) {
