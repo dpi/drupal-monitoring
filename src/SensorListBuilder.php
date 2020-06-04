@@ -219,8 +219,11 @@ class SensorListBuilder extends ConfigEntityListBuilder implements FormInterface
     $this->messenger()->addMessage($this->t('Configuration has been saved.'));
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getDefaultOperations(EntityInterface $entity) {
-    $operations = [];
+    $operations = parent::getDefaultOperations($entity);
 
     if ($entity->access('view')) {
       $operations['view'] = [
