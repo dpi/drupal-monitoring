@@ -104,7 +104,7 @@ class SystemLoadSensorPlugin extends SensorPluginBase {
   public function getDefaultConfiguration() {
     return [
       'value_label' => '% Average',
-      'caching_time' => 86400,
+      'caching_time' => 0,
       'value_type' => 'number',
       'thresholds' => [
         'type' => 'exceeds',
