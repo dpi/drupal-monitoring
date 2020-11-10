@@ -4,10 +4,13 @@
  *   Install file of the monitoring_demo module.
  */
 
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Component\Utility\Random;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\comment\Entity\Comment;
+use Drupal\monitoring\Entity\SensorConfig;
 use Drupal\node\Entity\Node;
+use Drupal\node\Entity\NodeType;
 use Drupal\node\NodeInterface;
 use Drupal\search_api\Entity\Index;
 
@@ -48,6 +51,31 @@ function monitoring_demo_install() {
       $sensor_manager->enableSensor('search_api_' . $index->id());
     }
   }
+  // Create node type sensors.
+  foreach (['page', 'article'] as $node_type_id) {
+    $node_type = NodeType::load($node_type_id);
+    $sensor = SensorConfig::create(array(
+      'id' => 'node_new_' . $node_type->id(),
+      'label' => new FormattableMarkup('New @type nodes', array('@type' => $node_type->label())),
+      'description' => new FormattableMarkup('New nodes of type @type', array('@type' => $node_type->label())),
+      'plugin_id' => 'entity_aggregator',
+      'value_label' => new FormattableMarkup('@type nodes', array('@type' => $node_type->label())),
+      'category' => 'Content',
+      'status' => FALSE,
+      'caching_time' => 600,
+      'settings' => array(
+        'entity_type' => 'node',
+        'conditions' => array(
+          array('field' => 'type', 'value' => $node_type->id()),
+        ),
+        'time_interval_field' => 'created',
+        'time_interval_value' => 60 * 60 * 24,
+      ),
+    ));
+    $sensor->save();
+  }
+
+
   // Enable content sensors.
   $sensor_manager->enableSensor('node_new_all');
   $sensor_manager->enableSensor('node_new_page');

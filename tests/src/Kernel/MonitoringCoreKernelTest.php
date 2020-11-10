@@ -438,8 +438,50 @@ class MonitoringCoreKernelTest extends MonitoringUnitTestBase {
 
     $type1 = NodeType::create(['type' => $this->randomMachineName()]);
     $type1->save();
+
+    $sensor1 = SensorConfig::create(array(
+      'id' => 'node_new_' . $type1->id(),
+      'label' => new FormattableMarkup('New @type nodes', array('@type' => $type1->label())),
+      'description' => new FormattableMarkup('New nodes of type @type', array('@type' => $type1->label())),
+      'plugin_id' => 'entity_aggregator',
+      'value_label' => new FormattableMarkup('@type nodes', array('@type' => $type1->label())),
+      'category' => 'Content',
+      'status' => FALSE,
+      'caching_time' => 600,
+      'settings' => array(
+        'entity_type' => 'node',
+        'conditions' => array(
+          array('field' => 'type', 'value' => $type1->id()),
+        ),
+        'time_interval_field' => 'created',
+        'time_interval_value' => 60 * 60 * 24,
+      ),
+    ));
+    $sensor1->save();
+
     $type2 = NodeType::create(['type' => $this->randomMachineName()]);
     $type2->save();
+
+    $sensor2 = SensorConfig::create(array(
+      'id' => 'node_new_' . $type2->id(),
+      'label' => new FormattableMarkup('New @type nodes', array('@type' => $type2->label())),
+      'description' => new FormattableMarkup('New nodes of type @type', array('@type' => $type2->label())),
+      'plugin_id' => 'entity_aggregator',
+      'value_label' => new FormattableMarkup('@type nodes', array('@type' => $type2->label())),
+      'category' => 'Content',
+      'status' => FALSE,
+      'caching_time' => 600,
+      'settings' => array(
+        'entity_type' => 'node',
+        'conditions' => array(
+          array('field' => 'type', 'value' => $type2->id()),
+        ),
+        'time_interval_field' => 'created',
+        'time_interval_value' => 60 * 60 * 24,
+      ),
+    ));
+    $sensor2->save();
+
     Node::create(array('title' => $this->randomString(), 'type' => $type1->id()))->save();
     Node::create(array('title' => $this->randomString(), 'type' => $type1->id()))->save();
     Node::create(array('title' => $this->randomString(), 'type' => $type2->id()))->save();
